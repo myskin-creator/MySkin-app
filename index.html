@@ -1,295 +1,729 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>MySkin — Skincare Routine Analyzer</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>MySkin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg: #F9F7F4; --surface: #FFFFFF; --surface2: #F2EFE9;
-      --text: #1A1A1A; --text2: #6B6660; --text3: #A09A94;
-      --accent: #C4956A; --accent2: #E8D5C0;
-      --danger: #D64F4F; --danger-bg: #FDF0F0;
-      --success: #4A7C59; --success-bg: #EDF4EF;
-      --warn: #B07D2E; --warn-bg: #FBF4E8;
-      --border: rgba(0,0,0,0.08); --radius: 16px; --radius-sm: 10px;
-      --shadow: 0 2px 16px rgba(0,0,0,0.06);
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --mint:#B5D5C5;--mint-light:#E8F5EE;--mint-deep:#7AAF96;
+      --rose:#F2C4CE;--rose-light:#FAF0F2;--rose-deep:#C47A8A;--rose-text:#7A3545;
+      --lav:#C9B8D8;--lav-light:#F0EBF8;--lav-deep:#8A70A8;
+      --warm:#FDFAF8;--surface:#FFFFFF;
+      --text:#2C1A20;--text2:#7A6870;--text3:#B8A8B0;
+      --border:rgba(194,122,138,0.15);--border2:rgba(194,122,138,0.25);
+      --ok:#6A9E7A;--ok-bg:#EEF5F0;
+      --bad:#C85A6A;--bad-bg:#FDEEF0;
+      --warn:#B8905A;--warn-bg:#FDF4EC;
+      --r:16px;--rsm:10px;--sh:0 2px 16px rgba(180,100,130,0.1)
     }
-    html, body { height: 100%; background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); }
-    .screen { display: none; min-height: 100dvh; flex-direction: column; }
-    .screen.active { display: flex; }
-    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); display: flex; z-index: 100; padding-bottom: env(safe-area-inset-bottom); }
-    .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 0; background: none; border: none; font-family: 'DM Sans', sans-serif; font-size: 10px; color: var(--text3); cursor: pointer; }
-    .nav-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; }
-    .nav-btn.active { color: var(--accent); }
-    .page-header { padding: 56px 20px 16px; }
-    .page-header h1 { font-family: 'DM Serif Display', serif; font-size: 28px; font-weight: 400; }
-    .page-header p { font-size: 14px; color: var(--text2); margin-top: 4px; }
-    .scroll-content { flex: 1; overflow-y: auto; padding: 0 20px 100px; }
-    .card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow); }
-    .scan-hero { background: var(--text); border-radius: var(--radius); padding: 24px 20px; margin-bottom: 20px; }
-    .scan-hero h2 { font-family: 'DM Serif Display', serif; font-size: 22px; color: #fff; font-weight: 400; margin-bottom: 6px; }
-    .scan-hero p { font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 16px; }
-    .search-row { display: flex; gap: 8px; }
-    .search-input { flex: 1; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff; border-radius: 50px; padding: 12px 18px; font-size: 14px; font-family: 'DM Sans', sans-serif; }
-    .search-input::placeholder { color: rgba(255,255,255,0.5); }
-    .search-btn { background: var(--accent); color: #fff; border: none; border-radius: 50px; padding: 12px 20px; font-size: 14px; font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer; white-space: nowrap; }
-    .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); margin-bottom: 10px; margin-top: 4px; }
-    .product-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
-    .product-row:last-child { border-bottom: none; }
-    .product-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--surface2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 22px; }
-    .product-info { flex: 1; min-width: 0; }
-    .product-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .product-brand { font-size: 12px; color: var(--text2); }
-    .badge { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px; flex-shrink: 0; }
-    .badge-ok { background: var(--success-bg); color: var(--success); }
-    .conflict-alert { border-radius: var(--radius-sm); padding: 14px; margin-bottom: 10px; display: flex; gap: 12px; align-items: flex-start; }
-    .conflict-alert.danger { background: var(--danger-bg); border: 1px solid rgba(214,79,79,0.2); }
-    .conflict-alert.warn { background: var(--warn-bg); border: 1px solid rgba(176,125,46,0.2); }
-    .conflict-alert.ok { background: var(--success-bg); border: 1px solid rgba(74,124,89,0.2); }
-    .conflict-icon { font-size: 20px; flex-shrink: 0; }
-    .conflict-title { font-size: 13px; font-weight: 600; }
-    .conflict-desc { font-size: 12px; color: var(--text2); margin-top: 3px; line-height: 1.5; }
-    .routine-time { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 10px; }
-    .routine-time svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
-    .step-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
-    .step-row:last-child { border-bottom: none; }
-    .step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: var(--text2); flex-shrink: 0; }
-    .step-name { font-size: 13px; font-weight: 500; }
-    .step-note { font-size: 11px; color: var(--text2); }
-    .profile-option { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
-    .profile-option:last-child { border-bottom: none; }
-    .profile-label { font-size: 14px; }
-    .profile-value { font-size: 13px; color: var(--accent); font-weight: 500; }
-    #screen-onboarding { background: var(--bg); padding: 40px 24px; justify-content: center; align-items: center; text-align: center; }
-    .ob-emoji { font-size: 52px; margin-bottom: 16px; }
-    .ob-title { font-family: 'DM Serif Display', serif; font-size: 30px; font-weight: 400; margin-bottom: 8px; }
-    .ob-sub { font-size: 15px; color: var(--text2); margin-bottom: 36px; line-height: 1.6; }
-    .ob-options { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; margin-bottom: 28px; }
-    .ob-option { background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; font-size: 14px; font-weight: 500; cursor: pointer; text-align: left; font-family: 'DM Sans', sans-serif; }
-    .ob-option.selected { border-color: var(--accent); background: #FDF8F3; }
-    .ob-option span { display: block; font-size: 12px; color: var(--text2); font-weight: 400; margin-top: 2px; }
-    .btn-next { background: var(--text); color: #fff; border: none; border-radius: 50px; padding: 16px 40px; font-size: 15px; font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer; width: 100%; max-width: 320px; }
-    .ob-progress { display: flex; gap: 6px; margin-bottom: 32px; }
-    .ob-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); }
-    .ob-dot.active { background: var(--accent); }
-    #result-modal { display: none; position: fixed; inset: 0; z-index: 300; background: rgba(0,0,0,0.5); align-items: flex-end; }
-    #result-modal.open { display: flex; }
-    .result-sheet { background: var(--bg); border-radius: 24px 24px 0 0; width: 100%; max-height: 85vh; overflow-y: auto; padding: 20px 20px 40px; }
-    .result-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
-    .result-product-header { display: flex; gap: 14px; align-items: center; margin-bottom: 20px; }
-    .result-icon { width: 56px; height: 56px; border-radius: 14px; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 28px; }
-    .result-name { font-size: 17px; font-weight: 600; }
-    .result-brand { font-size: 13px; color: var(--text2); }
-    .ingredient-chip { display: inline-block; background: var(--surface2); border-radius: 20px; padding: 5px 12px; font-size: 12px; margin: 4px; }
-    .ingredient-chip.key { background: var(--accent2); color: #6B4C2A; font-weight: 500; }
-    .add-btn { background: var(--accent); color: #fff; border: none; border-radius: 50px; padding: 14px; font-size: 15px; font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer; width: 100%; margin-top: 16px; }
-    .search-results { margin-bottom: 12px; }
-    .search-result-row { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--surface); border-radius: var(--radius-sm); margin-bottom: 8px; cursor: pointer; border: 1px solid var(--border); }
-    .search-result-row:hover { border-color: var(--accent); }
-    .empty-state { text-align: center; padding: 40px 20px; }
-    .empty-state .emoji { font-size: 40px; margin-bottom: 12px; }
-    .empty-state h3 { font-size: 16px; font-weight: 500; margin-bottom: 6px; }
-    .empty-state p { font-size: 13px; color: var(--text2); line-height: 1.5; }
+    html,body{height:100%;background:var(--warm);font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased}
+    .screen{display:none;min-height:100dvh;flex-direction:column}
+    .screen.active{display:flex}
+    .top-nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(253,250,248,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:env(safe-area-inset-top) 0 0}
+    .top-nav-inner{display:flex;align-items:center;justify-content:space-between;padding:12px 20px 0}
+    .app-logo{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:400;color:var(--rose-text);letter-spacing:-0.01em}
+    .lang-toggle{display:flex;gap:4px}
+    .lang-btn{padding:4px 10px;border-radius:20px;border:1px solid var(--border2);font-size:11px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--text2);background:transparent}
+    .lang-btn.active{background:var(--rose-deep);color:#fff;border-color:var(--rose-deep)}
+    .tab-strip{display:flex;padding:8px 20px 0;gap:4px;overflow-x:auto;scrollbar-width:none}
+    .tab-strip::-webkit-scrollbar{display:none}
+    .tab-item{white-space:nowrap;padding:7px 14px;border-radius:20px 20px 0 0;font-size:12px;font-weight:500;cursor:pointer;color:var(--text3);border:none;background:none;font-family:'DM Sans',sans-serif;transition:all 0.2s;border-bottom:2px solid transparent}
+    .tab-item.active{color:var(--rose-deep);border-bottom-color:var(--rose-deep)}
+    .scroll-content{flex:1;overflow-y:auto;padding:0 20px 100px;margin-top:110px}
+    .card{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);padding:18px;margin-bottom:12px;box-shadow:var(--sh)}
+    .clabel{font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:12px}
+    .search-hero{background:linear-gradient(135deg,#F0E8F5 0%,#E8F5EE 50%,#FAF0F2 100%);border-radius:var(--r);padding:22px 20px;margin-bottom:16px;position:relative;overflow:hidden}
+    .search-hero h2{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--text);margin-bottom:4px}
+    .search-hero p{font-size:12px;color:var(--text2);margin-bottom:14px}
+    .search-row{display:flex;gap:8px}
+    .search-input{flex:1;background:rgba(255,255,255,0.9);border:1px solid var(--border2);color:var(--text);border-radius:50px;padding:11px 18px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none}
+    .search-input:focus{border-color:var(--rose-deep)}
+    .search-btn{background:var(--rose-deep);color:#fff;border:none;border-radius:50px;padding:11px 20px;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer}
+    .prod-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer}
+    .prod-row:last-child{border-bottom:none}
+    .prod-img{width:48px;height:48px;border-radius:12px;background:var(--rose-light);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;overflow:hidden}
+    .prod-img img{width:100%;height:100%;object-fit:cover}
+    .prod-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .prod-brand{font-size:11px;color:var(--text2);margin-top:1px}
+    .badge{font-size:10px;font-weight:500;padding:3px 9px;border-radius:20px;flex-shrink:0;white-space:nowrap}
+    .badge-ok{background:var(--ok-bg);color:var(--ok)}
+    .badge-bad{background:var(--bad-bg);color:var(--bad)}
+    .badge-warn{background:var(--warn-bg);color:var(--warn)}
+    .badge-mint{background:var(--mint-light);color:var(--mint-deep)}
+    .badge-lav{background:var(--lav-light);color:var(--lav-deep)}
+    .alert{border-radius:var(--rsm);padding:13px;margin-bottom:8px;display:flex;gap:11px;align-items:flex-start}
+    .alert.ok{background:var(--ok-bg);border:1px solid rgba(106,158,122,0.25)}
+    .alert.bad{background:var(--bad-bg);border:1px solid rgba(200,90,106,0.25)}
+    .alert.warn{background:var(--warn-bg);border:1px solid rgba(184,144,90,0.25)}
+    .alert.info{background:var(--lav-light);border:1px solid rgba(138,112,168,0.25)}
+    .alert-icon{font-size:17px;flex-shrink:0;margin-top:1px}
+    .alert-title{font-size:13px;font-weight:500}
+    .alert-desc{font-size:12px;color:var(--text2);margin-top:3px;line-height:1.5}
+    #screen-onboarding{background:var(--warm);padding:0;justify-content:flex-start;align-items:center}
+    .ob-wrap{width:100%;max-width:420px;padding:60px 28px 40px;display:flex;flex-direction:column;align-items:center;text-align:center}
+    .ob-logo{font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:300;color:var(--rose-text);letter-spacing:-0.02em;line-height:1}
+    .ob-tagline{font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--lav-deep);margin-top:6px;margin-bottom:48px}
+    .ob-step-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;color:var(--text);margin-bottom:8px}
+    .ob-step-sub{font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.6;max-width:300px}
+    .ob-progress{display:flex;gap:5px;margin-bottom:28px}
+    .ob-dot{height:4px;border-radius:2px;background:var(--border2);transition:all 0.3s}
+    .ob-options-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:340px;margin-bottom:24px}
+    .ob-options-col{display:flex;flex-direction:column;gap:8px;width:100%;max-width:340px;margin-bottom:24px}
+    .ob-chip{background:var(--surface);border:1.5px solid var(--border2);border-radius:var(--rsm);padding:10px 14px;font-size:13px;cursor:pointer;text-align:left;font-family:'DM Sans',sans-serif;color:var(--text);transition:all 0.2s;display:flex;align-items:center;gap:8px}
+    .ob-chip.selected{border-color:var(--rose-deep);background:var(--rose-light);color:var(--rose-text)}
+    .ob-chip .chip-icon{font-size:16px;flex-shrink:0}
+    .ob-chip .chip-text{font-size:12px;font-weight:500}
+    .ob-chip .chip-sub{font-size:10px;color:var(--text3);display:block;margin-top:1px}
+    .ob-input{width:100%;max-width:340px;background:var(--surface);border:1.5px solid var(--border2);border-radius:var(--rsm);padding:13px 16px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;margin-bottom:8px}
+    .ob-input:focus{border-color:var(--rose-deep)}
+    .btn-primary{background:var(--rose-deep);color:#fff;border:none;border-radius:50px;padding:15px 40px;font-size:14px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;width:100%;max-width:340px;transition:opacity 0.2s}
+    .btn-primary:disabled{opacity:0.4;cursor:not-allowed}
+    .btn-secondary{background:transparent;color:var(--text2);border:1.5px solid var(--border2);border-radius:50px;padding:12px 40px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;width:100%;max-width:340px;margin-top:8px}
+    .modal-overlay{display:none;position:fixed;inset:0;z-index:300;background:rgba(44,26,32,0.45);align-items:flex-end}
+    .modal-overlay.open{display:flex}
+    .modal-sheet{background:var(--warm);border-radius:28px 28px 0 0;width:100%;max-height:90vh;overflow-y:auto;padding:16px 20px 48px}
+    .modal-handle{width:32px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 20px}
+    .modal-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;margin-bottom:4px}
+    .modal-sub{font-size:12px;color:var(--text2);margin-bottom:20px}
+    .pd-img{width:76px;height:76px;border-radius:16px;background:var(--rose-light);display:flex;align-items:center;justify-content:center;font-size:36px;flex-shrink:0;overflow:hidden;border:1px solid var(--border)}
+    .pd-img img{width:100%;height:100%;object-fit:cover}
+    .ing-chip{display:inline-block;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:11px;color:var(--text2);margin:3px}
+    .ing-chip.key{background:var(--rose-light);color:var(--rose-text);border-color:var(--border2);font-weight:500}
+    .ing-chip.good{background:var(--ok-bg);color:var(--ok)}
+    .ing-chip.bad{background:var(--bad-bg);color:var(--bad)}
+    .btn-row{display:flex;gap:8px;margin-top:18px}
+    .btn-cta{flex:1;background:var(--rose-deep);color:#fff;border:none;border-radius:50px;padding:13px;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer}
+    .btn-outline{flex:1;background:transparent;border:1.5px solid var(--border2);border-radius:50px;padding:13px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text2);cursor:pointer}
+    .score-block{border-radius:var(--r);padding:16px;margin-bottom:14px;text-align:center}
+    .step-card{display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--surface);border-radius:var(--rsm);border:1px solid var(--border);margin-bottom:6px}
+    .step-num{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+    .step-num.am{background:var(--mint-light);color:var(--mint-deep)}
+    .step-num.pm{background:var(--lav-light);color:var(--lav-deep)}
+    .step-name{font-size:13px;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .step-note{font-size:11px;color:var(--text2)}
+    .combine-row{display:flex;align-items:center;gap:10px;padding:10px;background:var(--surface);border-radius:var(--rsm);border:1px solid var(--border);margin-bottom:8px}
+    .empty{text-align:center;padding:48px 20px}
+    .empty h3{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;margin-bottom:6px}
+    .empty p{font-size:13px;color:var(--text2);line-height:1.6}
+    .profile-row{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--border)}
+    .profile-row:last-child{border-bottom:none}
+    .multi-tag{display:inline-block;background:var(--rose-light);color:var(--rose-text);border-radius:20px;padding:3px 10px;font-size:11px;margin:2px}
+    .skin-tag{font-size:11px;padding:4px 10px;border-radius:20px;background:var(--rose-light);color:var(--rose-text);border:1px solid var(--border);display:inline-block;margin:2px}
+    .tab-btn-row{display:flex;gap:8px;margin-bottom:16px}
+    .tab-btn{flex:1;padding:10px;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all 0.2s}
+    .tab-btn.active{background:var(--rose-deep);color:#fff;border:1.5px solid var(--rose-deep)}
+    .tab-btn.inactive{background:transparent;color:var(--text2);border:1.5px solid var(--border2)}
   </style>
 </head>
 <body>
 <div id="screen-onboarding" class="screen active">
-  <div class="ob-progress" id="ob-progress"></div>
-  <div id="ob-content"></div>
+  <div class="ob-wrap">
+    <div class="ob-progress" id="ob-progress"></div>
+    <div id="ob-content"></div>
+  </div>
 </div>
-<div id="screen-home" class="screen">
-  <div class="page-header"><h1>MySkin</h1><p id="home-greeting">Your skincare, simplified.</p></div>
-  <div class="scroll-content">
-    <div class="scan-hero">
-      <h2>Find a product</h2>
-      <p>Search by name — e.g. "Nivea cream" or "Bioderma"</p>
-      <div class="search-row">
-        <input class="search-input" type="text" id="home-search" placeholder="Product name..." />
-        <button class="search-btn" onclick="homeSearch()">Search</button>
+<div id="screen-app" class="screen">
+  <div class="top-nav">
+    <div class="top-nav-inner">
+      <div class="app-logo">MySkin</div>
+      <div class="lang-toggle">
+        <button class="lang-btn active" id="btn-en" onclick="setLang('en')">EN</button>
+        <button class="lang-btn" id="btn-bg" onclick="setLang('bg')">БГ</button>
       </div>
     </div>
-    <div id="search-results" class="search-results"></div>
-    <div id="conflict-summary"></div>
-    <div class="section-label">My products</div>
-    <div class="card" id="products-list">
-      <div class="empty-state"><div class="emoji">🧴</div><h3>No products yet</h3><p>Search your first product to get started</p></div>
+    <div class="tab-strip">
+      <button class="tab-item active" id="tab-home" onclick="showTab('home')" data-en="Search" data-bg="Търси">Search</button>
+      <button class="tab-item" id="tab-products" onclick="showTab('products')" data-en="My Products" data-bg="Моите">My Products</button>
+      <button class="tab-item" id="tab-routine" onclick="showTab('routine')" data-en="Routine" data-bg="Рутина">Routine</button>
+      <button class="tab-item" id="tab-profile" onclick="showTab('profile')" data-en="Profile" data-bg="Профил">Profile</button>
     </div>
   </div>
-</div>
-<div id="screen-routine" class="screen">
-  <div class="page-header"><h1>My Routine</h1><p>Personalized for your skin</p></div>
-  <div class="scroll-content" id="routine-content"></div>
-</div>
-<div id="screen-profile" class="screen">
-  <div class="page-header"><h1>My Profile</h1><p>Your skin, your settings</p></div>
   <div class="scroll-content">
-    <div class="card" id="profile-display"></div>
-    <div class="section-label" style="margin-top:8px">App</div>
-    <div class="card"><div class="profile-option" onclick="resetApp()"><span class="profile-label" style="color:var(--danger)">Reset all data</span></div></div>
+    <div id="tab-content-home"></div>
+    <div id="tab-content-products" style="display:none"></div>
+    <div id="tab-content-routine" style="display:none"></div>
+    <div id="tab-content-profile" style="display:none"></div>
   </div>
 </div>
-<nav class="bottom-nav" id="bottom-nav" style="display:none">
-  <button class="nav-btn active" onclick="showScreen('home')" id="nav-home">
-    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home
-  </button>
-  <button class="nav-btn" onclick="showScreen('routine')" id="nav-routine">
-    <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>Routine
-  </button>
-  <button class="nav-btn" onclick="showScreen('profile')" id="nav-profile">
-    <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile
-  </button>
-</nav>
-<div id="result-modal">
-  <div class="result-sheet">
-    <div class="result-handle"></div>
-    <div id="result-content"></div>
-  </div>
-</div>
+<div class="modal-overlay" id="product-modal"><div class="modal-sheet"><div class="modal-handle"></div><div id="product-modal-content"></div></div></div>
+<div class="modal-overlay" id="combine-modal"><div class="modal-sheet"><div class="modal-handle"></div><div id="combine-modal-content"></div></div></div>
 <script>
-const SUPABASE_URL='https://nddqqkrmjvqgqqlloojb.supabase.co';
-const SUPABASE_KEY='sb_publishable_Yqz7MPfatV4nQo2QGMVuGw_TsRcwjit';
-let userProfile=JSON.parse(localStorage.getItem('myskin_profile')||'null');
-let products=JSON.parse(localStorage.getItem('myskin_products')||'[]');
+let lang=localStorage.getItem('myskin_lang')||'en';
+let profile=JSON.parse(localStorage.getItem('myskin_profile')||'null');
+let myProducts=JSON.parse(localStorage.getItem('myskin_products')||'[]');
+let badProducts=JSON.parse(localStorage.getItem('myskin_bad_products')||'[]');
+let currentTab='home';
+let combineList=[];
+
+const T={
+  en:{search_title:'Find a product',search_sub:'Search by name — Bioderma, Avène, The Ordinary…',search_placeholder:'Product name…',search_btn:'Search',no_products:'No products yet',no_products_sub:'Search and save products to begin',save_product:'Save to my products',combine_btn:'Combine',suitable:'Suitable for your skin',partially:'Partially suitable',not_suitable:'Not recommended for you',key_ings:'Key ingredients',all_ings:'Full ingredients',for_your_goals:'Helps with your goals',watch_out:'Watch out',conflicts:'Conflicts with your products',compatible:'Compatible with your routine',am_routine:'Morning routine',pm_routine:'Evening routine',check_routine:'Check my routine',create_routine:'Create a routine',analyse:'Analyse',profile_title:'My Profile',edit_profile:'Edit profile',skin_type:'Skin type',concerns:'Skin concerns',goals:'Goals',bad_ings:'Ingredients I avoid',good_ings:'Ingredients I love',bad_products_tab:"Products that didn't work",reset:'Reset all data',searching:'🔍 Searching…',not_found:'No products found. Try a different name.',combining_title:'Combining products',combining_sub:'Add more products to compare',analyse_combo:'Analyse combination',routine_analysis:'Routine analysis'},
+  bg:{search_title:'Намери продукт',search_sub:'Търси по име — Bioderma, Avène, The Ordinary…',search_placeholder:'Име на продукт…',search_btn:'Търси',no_products:'Няма добавени продукти',no_products_sub:'Търси и запазвай продукти',save_product:'Запази продукта',combine_btn:'Комбинирай',suitable:'Подходящ за теб',partially:'Частично подходящ',not_suitable:'Не се препоръчва за теб',key_ings:'Ключови съставки',all_ings:'Всички съставки',for_your_goals:'Помага за твоите цели',watch_out:'Внимание',conflicts:'Конфликти с твоите продукти',compatible:'Съвместим с рутината ти',am_routine:'Сутрешна рутина',pm_routine:'Вечерна рутина',check_routine:'Провери рутината ми',create_routine:'Създай рутина',analyse:'Анализирай',profile_title:'Моят профил',edit_profile:'Редактирай профила',skin_type:'Тип кожа',concerns:'Проблеми',goals:'Цели',bad_ings:'Съставки които избягвам',good_ings:'Съставки които харесвам',bad_products_tab:'Продукти, които не ми отиват',reset:'Изтрий всички данни',searching:'🔍 Търся…',not_found:'Няма намерени продукти. Опитай с друго.',combining_title:'Комбиниране на продукти',combining_sub:'Добави още продукти за сравнение',analyse_combo:'Анализирай комбинацията',routine_analysis:'Анализ на рутина'}
+};
+
+function t(k){return T[lang][k]||T.en[k]||k;}
+
+function setLang(l){
+  lang=l;localStorage.setItem('myskin_lang',l);
+  document.getElementById('btn-en').className='lang-btn'+(l==='en'?' active':'');
+  document.getElementById('btn-bg').className='lang-btn'+(l==='bg'?' active':'');
+  document.querySelectorAll('.tab-item').forEach(el=>{el.textContent=el.dataset[l]||el.dataset.en;});
+  renderTab(currentTab);
+}
+
 const CONFLICTS=[
-  {a:'retinol',b:'glycolic acid',level:'danger',msg:'Retinol + Glycolic Acid can cause severe irritation. Use on separate nights.'},
-  {a:'retinol',b:'aha',level:'danger',msg:'Retinol + AHA can damage the skin barrier. Use on separate nights.'},
-  {a:'retinol',b:'salicylic acid',level:'danger',msg:'Retinol + Salicylic Acid can cause peeling. Alternate days.'},
-  {a:'vitamin c',b:'retinol',level:'warn',msg:'Vitamin C in the morning, Retinol at night.'},
-  {a:'vitamin c',b:'niacinamide',level:'warn',msg:'Vitamin C + Niacinamide can reduce effectiveness. Use at different times.'},
-  {a:'benzoyl peroxide',b:'retinol',level:'danger',msg:'Benzoyl Peroxide deactivates Retinol. Never use together.'},
-  {a:'glycolic acid',b:'salicylic acid',level:'warn',msg:'Multiple acids together can over-exfoliate. Alternate days.'},
+  {a:'retinol',b:'glycolic acid',level:'bad',en:'Retinol + Glycolic Acid — very irritating together. Use on separate nights.',bg:'Ретинол + Гликолова киселина — твърде дразнещо. Ползвай в различни вечери.'},
+  {a:'retinol',b:'aha',level:'bad',en:'Retinol + AHA can damage your skin barrier. Alternate nights.',bg:'Ретинол + AHA могат да увредят кожната бариера. Редувай вечери.'},
+  {a:'retinol',b:'salicylic acid',level:'bad',en:'Retinol + Salicylic Acid — risk of over-irritation. Alternate days.',bg:'Ретинол + Салицилова киселина — риск от дразнене. Редувай дни.'},
+  {a:'retinol',b:'bha',level:'bad',en:'Retinol + BHA — too strong together. Alternate days.',bg:'Ретинол + BHA — твърде силно. Редувай дни.'},
+  {a:'vitamin c',b:'retinol',level:'warn',en:'Vitamin C morning + Retinol at night works best.',bg:'Витамин С сутрин + Ретинол вечер — оптималната комбинация.'},
+  {a:'vitamin c',b:'niacinamide',level:'warn',en:'Vitamin C + Niacinamide can reduce effectiveness. Use at different times.',bg:'Витамин С + Ниацинамид могат да намалят ефекта. Ползвай по различно време.'},
+  {a:'vitamin c',b:'glycolic acid',level:'warn',en:'Both acidic — use Vitamin C morning, Glycolic Acid at night.',bg:'И двете са киселинни — Витамин С сутрин, Гликолова вечер.'},
+  {a:'benzoyl peroxide',b:'retinol',level:'bad',en:'Benzoyl Peroxide deactivates Retinol. Never use together.',bg:'Бензоил пероксид деактивира Ретинола. Никога заедно.'},
+  {a:'glycolic acid',b:'salicylic acid',level:'warn',en:'Two acids together can over-exfoliate. Alternate days.',bg:'Две киселини заедно могат да преексфолират. Редувай дни.'},
+  {a:'lactic acid',b:'retinol',level:'warn',en:'Lactic Acid + Retinol — use on alternate nights.',bg:'Млечна киселина + Ретинол — ползвай в различни вечери.'},
 ];
-const INGREDIENT_EMOJIS={'retinol':'🔴','vitamin c':'🟠','niacinamide':'🟡','hyaluronic acid':'💧','glycolic acid':'🟣','salicylic acid':'🟢','spf':'☀️','ceramide':'🛡️'};
-const PRODUCT_EMOJIS=['🧴','🧼','✨','💆','🌿','🫧','🪷'];
-const OB_STEPS=[
-  {emoji:'🌿',title:'Welcome to MySkin',sub:'Let\'s personalize your experience so we can analyze products for your skin.',type:'intro'},
-  {emoji:'🧬',title:'What\'s your skin type?',sub:'This helps us score ingredients for you specifically.',type:'choice',key:'skinType',options:[{value:'dry',label:'Dry',desc:'Often feels tight or flaky'},{value:'oily',label:'Oily',desc:'Shiny, prone to breakouts'},{value:'combination',label:'Combination',desc:'Oily T-zone, normal elsewhere'},{value:'normal',label:'Normal',desc:'Balanced, rarely problematic'},{value:'sensitive',label:'Sensitive',desc:'Reacts easily, prone to redness'}]},
-  {emoji:'🎯',title:'Main skin concern?',sub:'Pick the one that matters most right now.',type:'choice',key:'concern',options:[{value:'acne',label:'Acne & breakouts',desc:''},{value:'aging',label:'Anti-aging',desc:''},{value:'hydration',label:'Hydration',desc:''},{value:'brightening',label:'Brightening & tone',desc:''},{value:'sensitivity',label:'Redness & sensitivity',desc:''}]},
-  {emoji:'⚠️',title:'Any sensitivities?',sub:'We\'ll flag products that might cause issues.',type:'choice',key:'sensitivity',options:[{value:'none',label:'None that I know of',desc:''},{value:'fragrance',label:'Fragrance',desc:''},{value:'alcohol',label:'Alcohol',desc:''},{value:'acids',label:'Strong acids',desc:''},{value:'retinol',label:'Retinol',desc:''}]}
+
+const COMPATIBLE_PAIRS=[
+  {a:'hyaluronic acid',b:'vitamin c',en:'Great combo — HA boosts Vitamin C absorption.',bg:'Страхотна комбинация — ХА подобрява усвояването на Витамин С.'},
+  {a:'hyaluronic acid',b:'retinol',en:'HA buffers Retinol irritation. Apply HA first.',bg:'ХА намалява дразненето от Ретинол. Нанеси ХА първо.'},
+  {a:'niacinamide',b:'spf',en:'Excellent daytime duo for protection and brightening.',bg:'Отличен дуо за защита и избистряне на тена.'},
+  {a:'ceramide',b:'retinol',en:'Ceramides repair the barrier weakened by Retinol.',bg:'Церамидите поправят бариерата, отслабена от Ретинола.'},
+  {a:'vitamin c',b:'spf',en:'The ultimate morning combo — antioxidant + sun protection.',bg:'Идеалната сутрешна комбинация — антиоксидант + слънцезащита.'},
+  {a:'peptide',b:'hyaluronic acid',en:'Anti-aging + hydration — excellent combination.',bg:'Анти-ейдж + хидратация — отлична комбинация.'},
+  {a:'niacinamide',b:'hyaluronic acid',en:'Brightening + hydration — great for combination skin.',bg:'Избистряне + хидратация — чудесно за смесена кожа.'},
 ];
-let obStep=0,obAnswers={};
+
+const INGREDIENT_GOALS={
+  'retinol':['aging','wrinkles','texture'],'vitamin c':['brightening','pigmentation','aging'],
+  'niacinamide':['pores','oiliness','brightening','redness'],'hyaluronic acid':['hydration','dryness'],
+  'glycolic acid':['texture','brightening','acne'],'salicylic acid':['acne','pores','oiliness'],
+  'spf':['aging','pigmentation','prevention'],'ceramide':['dryness','sensitivity','barrier'],
+  'peptide':['aging','wrinkles','firmness'],'squalane':['dryness','hydration'],
+  'bakuchiol':['aging','wrinkles','sensitivity'],'lactic acid':['texture','hydration','brightening'],
+  'zinc':['acne','oiliness'],'azelaic acid':['pigmentation','acne','redness'],
+};
+
+const GOAL_LABELS={
+  en:{aging:'Anti-aging',wrinkles:'Wrinkles',texture:'Texture',brightening:'Brightening',pigmentation:'Pigmentation',hydration:'Hydration',dryness:'Dryness',acne:'Acne',pores:'Pores',oiliness:'Oiliness',redness:'Redness',sensitivity:'Sensitivity',firmness:'Firming',barrier:'Barrier repair',prevention:'Prevention'},
+  bg:{aging:'Анти-ейдж',wrinkles:'Бръчки',texture:'Текстура',brightening:'Избистряне',pigmentation:'Пигментация',hydration:'Хидратация',dryness:'Сухота',acne:'Акне',pores:'Пори',oiliness:'Омазняване',redness:'Зачервяване',sensitivity:'Чувствителност',firmness:'Стягане',barrier:'Бариера',prevention:'Превенция'},
+};
+
+const SKIN_TYPES=[
+  {v:'dry',en:'Dry',bg:'Суха',sub:{en:'Tight, flaky',bg:'Стегната, лющи се'},icon:'🌵'},
+  {v:'oily',en:'Oily',bg:'Мазна',sub:{en:'Shiny, breakout-prone',bg:'Лъскава, склонна към акне'},icon:'💧'},
+  {v:'combination',en:'Combination',bg:'Смесена',sub:{en:'Oily T-zone',bg:'Мазна Т-зона'},icon:'⚖️'},
+  {v:'sensitive',en:'Sensitive',bg:'Чувствителна',sub:{en:'Reacts easily',bg:'Лесно реагира'},icon:'🌸'},
+  {v:'normal',en:'Normal',bg:'Нормална',sub:{en:'Balanced',bg:'Балансирана'},icon:'✨'},
+];
+
+const CONCERNS_LIST=[
+  {v:'acne',en:'Acne',bg:'Акне',icon:'🔴'},{v:'wrinkles',en:'Wrinkles',bg:'Бръчки',icon:'〰️'},
+  {v:'pigmentation',en:'Pigmentation',bg:'Пигментация',icon:'🟤'},{v:'pores',en:'Large pores',bg:'Пори',icon:'🔬'},
+  {v:'dryness',en:'Dryness',bg:'Сухота',icon:'🌵'},{v:'oiliness',en:'Oiliness',bg:'Омазняване',icon:'💦'},
+  {v:'redness',en:'Redness',bg:'Зачервяване',icon:'🌹'},{v:'texture',en:'Uneven texture',bg:'Текстура',icon:'📐'},
+  {v:'dark_circles',en:'Dark circles',bg:'Тъмни кръгове',icon:'👁️'},{v:'sensitivity',en:'Sensitivity',bg:'Чувствителност',icon:'🌺'},
+  {v:'dullness',en:'Dull skin',bg:'Уморена кожа',icon:'😴'},{v:'aging',en:'Aging signs',bg:'Стареене',icon:'⏳'},
+];
+
+const GOALS_LIST=[
+  {v:'hydration',en:'Deep hydration',bg:'Дълбока хидратация',icon:'💧'},
+  {v:'brightening',en:'Brightening & glow',bg:'Блясък & избистряне',icon:'✨'},
+  {v:'aging',en:'Anti-aging',bg:'Анти-ейдж',icon:'⏰'},
+  {v:'acne',en:'Clear skin',bg:'Чиста кожа',icon:'🌿'},
+  {v:'pigmentation',en:'Even skin tone',bg:'Равномерен тен',icon:'🎨'},
+  {v:'barrier',en:'Barrier repair',bg:'Бариера',icon:'🛡️'},
+  {v:'firmness',en:'Firming',bg:'Стягане',icon:'💪'},
+  {v:'sensitivity',en:'Calm sensitivity',bg:'Успокояване',icon:'🌸'},
+  {v:'pores',en:'Minimize pores',bg:'Пори',icon:'🔬'},
+];
+
+const SENSITIVITIES=[
+  {v:'fragrance',en:'Fragrance',bg:'Парфюм'},{v:'alcohol',en:'Alcohol',bg:'Алкохол'},
+  {v:'silicones',en:'Silicones',bg:'Силикони'},{v:'sulfates',en:'Sulfates',bg:'Сулфати'},
+  {v:'parabens',en:'Parabens',bg:'Парабени'},{v:'retinol',en:'Retinol',bg:'Ретинол'},
+  {v:'acids',en:'Strong acids',bg:'Силни киселини'},{v:'essential_oils',en:'Essential oils',bg:'Етерични масла'},
+  {v:'none',en:'None known',bg:'Нямам известни'},
+];
+
+let obStep=0;
+let obData={lang:'en',skinType:'',concerns:[],goals:[],sensitivities:[],goodIngs:'',badIngs:''};
+const OB_STEPS=['lang','skinType','concerns','goals','sensitivities','goodBad'];
+
 function renderOnboarding(){
   const step=OB_STEPS[obStep];
-  document.getElementById('ob-progress').innerHTML=OB_STEPS.map((_,i)=>`<div class="ob-dot ${i===obStep?'active':''}"></div>`).join('');
-  let html=`<div class="ob-emoji">${step.emoji}</div><div class="ob-title">${step.title}</div><div class="ob-sub">${step.sub}</div>`;
-  if(step.type==='choice')html+=`<div class="ob-options">`+step.options.map(o=>`<button class="ob-option ${obAnswers[step.key]===o.value?'selected':''}" onclick="selectOb('${step.key}','${o.value}')">${o.label}${o.desc?`<span>${o.desc}</span>`:''}</button>`).join('')+`</div>`;
-  const ok=step.type==='intro'||obAnswers[step.key];
-  html+=`<button class="btn-next" onclick="nextOb()" ${!ok?'style="opacity:0.4"':''}>${obStep===OB_STEPS.length-1?'Start →':'Continue →'}</button>`;
+  document.getElementById('ob-progress').innerHTML=OB_STEPS.map((_,i)=>`<div class="ob-dot" style="width:${i===obStep?'20':'8'}px;background:${i<obStep?'var(--mint)':i===obStep?'var(--rose-deep)':'var(--border2)'}"></div>`).join('');
+  const l=obData.lang||'en';
+  let html='';
+  if(step==='lang'){
+    html=`<div class="ob-logo">MySkin</div><div class="ob-tagline">Skincare Intelligence</div>
+      <div class="ob-step-title" style="margin-bottom:24px">Choose language / Избери език</div>
+      <div class="ob-options-col">
+        <button class="ob-chip ${obData.lang==='en'?'selected':''}" onclick="obData.lang='en';renderOnboarding()"><span class="chip-icon">🇬🇧</span><div><span class="chip-text">English</span></div></button>
+        <button class="ob-chip ${obData.lang==='bg'?'selected':''}" onclick="obData.lang='bg';renderOnboarding()"><span class="chip-icon">🇧🇬</span><div><span class="chip-text">Български</span></div></button>
+      </div>`;
+  } else if(step==='skinType'){
+    html=`<div class="ob-step-title">${l==='bg'?'Какъв е типът ти кожа?':"What's your skin type?"}</div>
+      <div class="ob-step-sub">${l==='bg'?'Избери един':'Pick one'}</div>
+      <div class="ob-options-grid">${SKIN_TYPES.map(s=>`<button class="ob-chip ${obData.skinType===s.v?'selected':''}" onclick="obData.skinType='${s.v}';renderOnboarding()"><span class="chip-icon">${s.icon}</span><div><span class="chip-text">${s[l]||s.en}</span><span class="chip-sub">${s.sub[l]||s.sub.en}</span></div></button>`).join('')}</div>`;
+  } else if(step==='concerns'){
+    html=`<div class="ob-step-title">${l==='bg'?'Какви са проблемите ти?':'What are your skin concerns?'}</div>
+      <div class="ob-step-sub">${l==='bg'?'Избери всичко, което важи за теб':'Select all that apply'}</div>
+      <div class="ob-options-grid">${CONCERNS_LIST.map(c=>`<button class="ob-chip ${obData.concerns.includes(c.v)?'selected':''}" onclick="toggleArr('concerns','${c.v}')"><span class="chip-icon">${c.icon}</span><div><span class="chip-text">${c[l]||c.en}</span></div></button>`).join('')}</div>`;
+  } else if(step==='goals'){
+    html=`<div class="ob-step-title">${l==='bg'?'Какво искаш да постигнеш?':'What are your skin goals?'}</div>
+      <div class="ob-step-sub">${l==='bg'?'Може да избереш повече от едно':'You can select multiple'}</div>
+      <div class="ob-options-grid">${GOALS_LIST.map(g=>`<button class="ob-chip ${obData.goals.includes(g.v)?'selected':''}" onclick="toggleArr('goals','${g.v}')"><span class="chip-icon">${g.icon}</span><div><span class="chip-text">${g[l]||g.en}</span></div></button>`).join('')}</div>`;
+  } else if(step==='sensitivities'){
+    html=`<div class="ob-step-title">${l==='bg'?'Съставки, на които реагираш?':'Any ingredient sensitivities?'}</div>
+      <div class="ob-step-sub">${l==='bg'?'Избери всички, ако има':'Select all that apply'}</div>
+      <div class="ob-options-grid">${SENSITIVITIES.map(s=>`<button class="ob-chip ${obData.sensitivities.includes(s.v)?'selected':''}" onclick="toggleArr('sensitivities','${s.v}')"><div><span class="chip-text">${s[l]||s.en}</span></div></button>`).join('')}</div>`;
+  } else if(step==='goodBad'){
+    html=`<div class="ob-step-title">${l==='bg'?'Любими и нелюбими съставки?':'Favourite & avoided ingredients?'}</div>
+      <div class="ob-step-sub">${l==='bg'?'Незадължително':'Optional — you can add these later'}</div>
+      <div style="width:100%;max-width:340px;margin-bottom:8px">
+        <div style="font-size:12px;color:var(--ok);font-weight:500;margin-bottom:6px">✓ ${l==='bg'?'Съставки, които харесвам':'Ingredients I love'}</div>
+        <input class="ob-input" placeholder="${l==='bg'?'напр. хиалуронова киселина':'e.g. hyaluronic acid, niacinamide'}" value="${obData.goodIngs}" oninput="obData.goodIngs=this.value"/>
+      </div>
+      <div style="width:100%;max-width:340px;margin-bottom:24px">
+        <div style="font-size:12px;color:var(--bad);font-weight:500;margin-bottom:6px">✗ ${l==='bg'?'Съставки, които избягвам':'Ingredients I avoid'}</div>
+        <input class="ob-input" placeholder="${l==='bg'?'напр. парфюм, алкохол':'e.g. fragrance, alcohol'}" value="${obData.badIngs}" oninput="obData.badIngs=this.value"/>
+      </div>`;
+  }
+  const canNext=step==='lang'?!!obData.lang:step==='skinType'?!!obData.skinType:true;
+  const isLast=obStep===OB_STEPS.length-1;
+  html+=`<button class="btn-primary" onclick="nextObStep()" ${!canNext?'disabled':''}>${isLast?(l==='bg'?'Започни →':'Start →'):(l==='bg'?'Напред →':'Continue →')}</button>`;
+  if(obStep>0)html+=`<button class="btn-secondary" onclick="prevObStep()">${l==='bg'?'Назад':'Back'}</button>`;
   document.getElementById('ob-content').innerHTML=html;
 }
-function selectOb(k,v){obAnswers[k]=v;renderOnboarding();}
-function nextOb(){
-  const step=OB_STEPS[obStep];
-  if(step.type==='choice'&&!obAnswers[step.key])return;
-  if(obStep<OB_STEPS.length-1){obStep++;renderOnboarding();}
-  else{userProfile={...obAnswers,createdAt:Date.now()};localStorage.setItem('myskin_profile',JSON.stringify(userProfile));startApp();}
+
+function toggleArr(key,val){
+  const arr=obData[key];
+  if(val==='none'){obData[key]=arr.includes('none')?[]:['none'];}
+  else{const ni=arr.indexOf('none');if(ni>=0)arr.splice(ni,1);const idx=arr.indexOf(val);if(idx>=0)arr.splice(idx,1);else arr.push(val);}
+  renderOnboarding();
 }
-function startApp(){
+
+function nextObStep(){if(obStep<OB_STEPS.length-1){obStep++;renderOnboarding();}else{finishOnboarding();}}
+function prevObStep(){if(obStep>0){obStep--;renderOnboarding();}}
+
+function finishOnboarding(){
+  lang=obData.lang;localStorage.setItem('myskin_lang',lang);
+  profile={...obData,createdAt:Date.now()};
+  localStorage.setItem('myskin_profile',JSON.stringify(profile));
   document.getElementById('screen-onboarding').classList.remove('active');
-  document.getElementById('bottom-nav').style.display='flex';
-  showScreen('home');renderHome();renderProfile();
+  document.getElementById('screen-app').classList.add('active');
+  setLang(lang);renderTab('home');
 }
-function showScreen(name){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('screen-'+name).classList.add('active');
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  const nb=document.getElementById('nav-'+name);if(nb)nb.classList.add('active');
-  if(name==='routine')renderRoutine();
+
+function showTab(name){
+  currentTab=name;
+  document.querySelectorAll('.tab-item').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.querySelectorAll('[id^="tab-content-"]').forEach(el=>el.style.display='none');
+  document.getElementById('tab-content-'+name).style.display='block';
+  renderTab(name);
 }
-async function homeSearch(){
-  const v=document.getElementById('home-search').value.trim();
+
+function renderTab(name){
+  if(name==='home')renderHome();
+  else if(name==='products')renderProducts();
+  else if(name==='routine')renderRoutine();
+  else if(name==='profile')renderProfileTab();
+}
+
+function renderHome(){
+  document.getElementById('tab-content-home').innerHTML=`
+    <div class="search-hero">
+      <h2>${t('search_title')}</h2>
+      <p>${t('search_sub')}</p>
+      <div class="search-row">
+        <input class="search-input" type="text" id="search-input" placeholder="${t('search_placeholder')}" onkeydown="if(event.key==='Enter')doSearch()"/>
+        <button class="search-btn" onclick="doSearch()">${t('search_btn')}</button>
+      </div>
+    </div>
+    <div id="search-results"></div>`;
+}
+
+async function doSearch(){
+  const v=document.getElementById('search-input').value.trim();
   if(!v)return;
-  const resultsDiv=document.getElementById('search-results');
-  resultsDiv.innerHTML=`<div style="text-align:center;padding:20px;color:var(--text2)">🔍 Searching...</div>`;
+  const el=document.getElementById('search-results');
+  el.innerHTML=`<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px">${t('searching')}</div>`;
   try{
-    const res=await fetch(`https://world.openbeautyfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(v)}&search_simple=1&action=process&json=1&page_size=5&fields=product_name,brands,ingredients_text,ingredients_text_en,code`);
+    const res=await fetch(`https://world.openbeautyfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(v)}&search_simple=1&action=process&json=1&page_size=8&fields=product_name,brands,ingredients_text,ingredients_text_en,code,image_front_small_url`);
     const data=await res.json();
-    if(data.products&&data.products.length>0){
-      resultsDiv.innerHTML=data.products.filter(p=>p.product_name).map(p=>`
-        <div class="search-result-row" onclick='selectProduct(${JSON.stringify({
-          barcode:p.code||'',
-          name:p.product_name||'Unknown',
-          brand:p.brands||'',
-          emoji:PRODUCT_EMOJIS[Math.floor(Math.random()*PRODUCT_EMOJIS.length)],
-          ingredients:p.ingredients_text_en||p.ingredients_text||'',
-          keyIngredients:extractKeyIngredients(p.ingredients_text_en||p.ingredients_text||'')
-        }).replace(/'/g,"&#39;")})'>
-          <div class="product-icon">🧴</div>
-          <div class="product-info">
-            <div class="product-name">${p.product_name}</div>
-            <div class="product-brand">${p.brands||''}</div>
-          </div>
-        </div>`).join('');
+    const prods=(data.products||[]).filter(p=>p.product_name);
+    if(prods.length>0){
+      el.innerHTML=`<div class="clabel" style="margin-bottom:10px">${prods.length} ${lang==='bg'?'резултата':'results'}</div>`+
+        prods.map(p=>{
+          const prod=buildProduct(p);
+          const score=getProfileScore(prod);
+          return `<div class="prod-row" onclick='openProductModal(${JSON.stringify(prod).replace(/'/g,"&#39;")})'>
+            <div class="prod-img">${prod.image?`<img src="${prod.image}" onerror="this.parentElement.innerHTML='🌸'"/>`:'🌸'}</div>
+            <div style="flex:1;min-width:0"><div class="prod-name">${prod.name}</div><div class="prod-brand">${prod.brand||''}</div></div>
+            <span class="badge ${score.cls}">${score.short}</span>
+          </div>`;
+        }).join('');
     }else{
-      resultsDiv.innerHTML=`<div style="text-align:center;padding:20px;color:var(--text2)">No products found. Try a different name.</div>`;
+      el.innerHTML=`<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px">${t('not_found')}</div>`;
     }
   }catch(e){
-    resultsDiv.innerHTML=`<div style="text-align:center;padding:20px;color:var(--danger)">Error searching. Please try again.</div>`;
+    el.innerHTML=`<div style="text-align:center;padding:20px;color:var(--bad);font-size:13px">Error. Please try again.</div>`;
   }
 }
-function selectProduct(product){
-  document.getElementById('search-results').innerHTML='';
-  showResultModal(product);
+
+function buildProduct(p){
+  const ings=p.ingredients_text_en||p.ingredients_text||'';
+  return{barcode:p.code||String(Date.now()),name:p.product_name||'Unknown',brand:p.brands||'',image:p.image_front_small_url||'',ingredients:ings,keyIngredients:extractKey(ings)};
 }
-function extractKeyIngredients(text){
-  if(!text)return[];
-  return['retinol','vitamin c','ascorbic acid','niacinamide','hyaluronic acid','glycolic acid','salicylic acid','aha','bha','benzoyl peroxide','peptide','ceramide','spf','zinc','lactic acid','bakuchiol','squalane'].filter(k=>text.toLowerCase().includes(k));
+
+function getProfileScore(product){
+  if(!profile)return{cls:'badge-lav',short:'—',level:0};
+  const ki=product.keyIngredients||[];
+  const userGoals=profile.goals||[];
+  const userBadIngs=(profile.badIngs||'').toLowerCase().split(/[,\n]/).map(s=>s.trim()).filter(Boolean);
+  const userSens=(profile.sensitivities||[]).filter(v=>v!=='none');
+  let bad=0,good=0;
+  ki.forEach(ing=>{
+    if(userBadIngs.some(b=>ing.includes(b)||b.includes(ing)))bad++;
+    if(userSens.some(s=>ing.includes(s.replace('_',' '))))bad++;
+    if((INGREDIENT_GOALS[ing]||[]).some(g=>userGoals.includes(g)))good++;
+  });
+  if(bad>0)return{cls:'badge-bad',short:lang==='bg'?'Внимание':'Watch out',level:-1};
+  if(good>=2)return{cls:'badge-ok',short:lang==='bg'?'Подходящ':'Suitable',level:2};
+  if(good>=1)return{cls:'badge-warn',short:lang==='bg'?'Частично':'Partial',level:1};
+  return{cls:'badge-lav',short:lang==='bg'?'Неутрален':'Neutral',level:0};
 }
-function checkProductConflicts(np){
-  const ex=products.flatMap(p=>p.keyIngredients||[]).map(i=>i.toLowerCase());
+  function openProductModal(product){
+  const score=getProfileScore(product);
+  const userGoals=profile?(profile.goals||[]):[];
+  const userBadIngs=profile?(profile.badIngs||'').toLowerCase().split(/[,\n]/).map(s=>s.trim()).filter(Boolean):[];
+  const userGoodIngs=profile?(profile.goodIngs||'').toLowerCase().split(/[,\n]/).map(s=>s.trim()).filter(Boolean):[];
+  const ki=product.keyIngredients||[];
+  const matchedGoals=[...new Set(ki.flatMap(ing=>(INGREDIENT_GOALS[ing]||[]).filter(g=>userGoals.includes(g))))];
+  const badKi=ki.filter(ing=>userBadIngs.some(b=>ing.includes(b)||b.includes(ing)));
+  const goodKi=ki.filter(ing=>userGoodIngs.some(g=>ing.includes(g)||g.includes(ing)));
+  const conflicts=checkConflicts(product);
+  const imgHtml=product.image?`<img src="${product.image}" onerror="this.parentElement.innerHTML='🌸'"/>`:'🌸';
+  let html=`<div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:18px">
+    <div class="pd-img">${imgHtml}</div>
+    <div><div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;line-height:1.2">${product.name}</div>
+    <div style="font-size:12px;color:var(--text2);margin-top:3px">${product.brand||''}</div></div>
+  </div>`;
+  const scoreEmoji=score.level===2?'✅':score.level===1?'⚠️':score.level===-1?'⛔':'➖';
+  const scoreTitle=score.level===2?t('suitable'):score.level===1?t('partially'):score.level===-1?t('not_suitable'):(lang==='bg'?'Неутрален':'Neutral');
+  const scoreBg=score.level===2?'var(--ok-bg)':score.level===-1?'var(--bad-bg)':'var(--warn-bg)';
+  html+=`<div style="background:${scoreBg};border-radius:var(--r);padding:14px;margin-bottom:14px;text-align:center">
+    <div style="font-size:28px">${scoreEmoji}</div>
+    <div style="font-size:14px;font-weight:500;margin-top:6px">${scoreTitle}</div>
+  </div>`;
+  if(matchedGoals.length>0){
+    html+=`<div style="margin-bottom:14px"><div class="clabel">${t('for_your_goals')}</div>
+      <div>${matchedGoals.map(g=>`<span class="badge badge-ok" style="margin:2px">${GOAL_LABELS[lang]?.[g]||GOAL_LABELS.en[g]||g}</span>`).join('')}</div></div>`;
+  }
+  if(badKi.length>0){
+    html+=`<div class="alert bad" style="margin-bottom:12px"><div class="alert-icon">⛔</div>
+      <div><div class="alert-title">${t('watch_out')}</div>
+      <div class="alert-desc">${lang==='bg'?'Съдържа съставки, които избягваш':'Contains ingredients you avoid'}: ${badKi.join(', ')}</div></div></div>`;
+  }
+  if(goodKi.length>0){
+    html+=`<div class="alert ok" style="margin-bottom:12px"><div class="alert-icon">💚</div>
+      <div><div class="alert-title">${lang==='bg'?'Любими съставки':'Ingredients you love'}</div>
+      <div class="alert-desc">${goodKi.join(', ')}</div></div></div>`;
+  }
+  if(conflicts.length>0){
+    html+=`<div style="margin-bottom:14px"><div class="clabel">${t('conflicts')}</div>
+      ${conflicts.map(c=>`<div class="alert ${c.level}"><div class="alert-icon">${c.level==='bad'?'🚫':'⚠️'}</div>
+      <div><div class="alert-title">${c[lang]||c.en}</div></div></div>`).join('')}</div>`;
+  }else if(myProducts.length>0){
+    html+=`<div class="alert ok" style="margin-bottom:14px"><div class="alert-icon">✅</div>
+      <div><div class="alert-title">${t('compatible')}</div></div></div>`;
+  }
+  if(ki.length>0){
+    html+=`<div style="margin-bottom:14px"><div class="clabel">${t('key_ings')}</div>
+      <div>${ki.map(i=>`<span class="ing-chip key">${i}</span>`).join('')}</div></div>`;
+  }
+  if(product.ingredients){
+    html+=`<div style="margin-bottom:16px"><div class="clabel">${t('all_ings')}</div>
+      <p style="font-size:11px;color:var(--text2);line-height:1.7">${product.ingredients.substring(0,500)}${product.ingredients.length>500?'…':''}</p></div>`;
+  }
+  const saved=myProducts.find(p=>p.barcode===product.barcode);
+  html+=`<div class="btn-row">
+    ${!saved?`<button class="btn-cta" onclick='saveProduct(${JSON.stringify(product).replace(/'/g,"&#39;")})'>${t('save_product')}</button>`:''}
+    <button class="btn-outline" onclick='openCombine(${JSON.stringify(product).replace(/'/g,"&#39;")})'>${t('combine_btn')}</button>
+  </div>`;
+  html+=`<button onclick="closeModal('product-modal')" style="width:100%;background:none;border:none;padding:12px;font-size:12px;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:6px">${lang==='bg'?'Затвори':'Dismiss'}</button>`;
+  document.getElementById('product-modal-content').innerHTML=html;
+  document.getElementById('product-modal').classList.add('open');
+}
+
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+function openCombine(product){
+  closeModal('product-modal');
+  combineList=[product];
+  renderCombineModal();
+  document.getElementById('combine-modal').classList.add('open');
+}
+
+function renderCombineModal(){
+  let html=`<div class="modal-title">${t('combining_title')}</div><div class="modal-sub">${t('combining_sub')}</div>`;
+  combineList.forEach((p,i)=>{
+    html+=`<div class="combine-row">
+      <div class="prod-img" style="width:40px;height:40px;font-size:18px">${p.image?`<img src="${p.image}" onerror="this.parentElement.innerHTML='🌸'"/>`:'🌸'}</div>
+      <div style="flex:1;min-width:0"><div class="prod-name">${p.name}</div></div>
+      ${i>0?`<button onclick="removeCombine(${i})" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:18px">✕</button>`:''}
+    </div>`;
+  });
+  html+=`<div class="search-row" style="margin:12px 0">
+    <input class="search-input" type="text" id="combine-search" placeholder="${t('search_placeholder')}" onkeydown="if(event.key==='Enter')combineSearch()"/>
+    <button class="search-btn" onclick="combineSearch()">${lang==='bg'?'Добави':'Add'}</button>
+  </div><div id="combine-search-results"></div>`;
+  if(combineList.length>=2){
+    html+=`<button class="btn-cta" style="width:100%;margin-top:8px" onclick="analyseCombo()">${t('analyse_combo')}</button>`;
+  }
+  html+=`<button onclick="closeModal('combine-modal')" style="width:100%;background:none;border:none;padding:12px;font-size:12px;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:6px">${lang==='bg'?'Затвори':'Dismiss'}</button>`;
+  document.getElementById('combine-modal-content').innerHTML=html;
+}
+
+async function combineSearch(){
+  const v=document.getElementById('combine-search').value.trim();
+  if(!v)return;
+  const el=document.getElementById('combine-search-results');
+  el.innerHTML=`<div style="padding:10px;font-size:12px;color:var(--text2)">🔍 ${lang==='bg'?'Търся':'Searching'}…</div>`;
+  try{
+    const res=await fetch(`https://world.openbeautyfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(v)}&search_simple=1&action=process&json=1&page_size=4&fields=product_name,brands,ingredients_text,ingredients_text_en,code,image_front_small_url`);
+    const data=await res.json();
+    const prods=(data.products||[]).filter(p=>p.product_name).slice(0,4);
+    el.innerHTML=prods.map(p=>{
+      const prod=buildProduct(p);
+      return `<div class="prod-row" onclick='addToCombine(${JSON.stringify(prod).replace(/'/g,"&#39;")})'>
+        <div class="prod-img" style="width:36px;height:36px;font-size:16px">${prod.image?`<img src="${prod.image}" onerror="this.parentElement.innerHTML='🌸'"/>`:'🌸'}</div>
+        <div style="flex:1;min-width:0"><div class="prod-name" style="font-size:12px">${prod.name}</div></div>
+        <span style="font-size:18px;color:var(--rose-deep)">+</span>
+      </div>`;
+    }).join('')||`<div style="padding:10px;font-size:12px;color:var(--text2)">${t('not_found')}</div>`;
+  }catch(e){el.innerHTML='';}
+}
+
+function addToCombine(product){if(!combineList.find(p=>p.barcode===product.barcode))combineList.push(product);renderCombineModal();}
+function removeCombine(i){combineList.splice(i,1);renderCombineModal();}
+
+function analyseCombo(){
+  const allKi=combineList.flatMap(p=>p.keyIngredients||[]);
+  const conflicts=[];
+  CONFLICTS.forEach(c=>{if(allKi.some(i=>i.includes(c.a))&&allKi.some(i=>i.includes(c.b)))conflicts.push(c);});
+  const compatFound=COMPATIBLE_PAIRS.filter(c=>allKi.some(i=>i.includes(c.a))&&allKi.some(i=>i.includes(c.b)));
+  const am=[],pm=[];
+  combineList.forEach(p=>{
+    const k=p.keyIngredients||[];
+    const isPM=k.some(x=>['retinol','aha','bha','glycolic acid','salicylic acid','lactic acid'].includes(x));
+    const isAM=k.some(x=>['spf','vitamin c'].includes(x));
+    if(isPM&&!isAM)pm.push(p);else if(isAM&&!isPM)am.push(p);else{am.push(p);pm.push(p);}
+  });
+  let html=`<div class="modal-title">${lang==='bg'?'Резултат':'Analysis Result'}</div>`;
+  if(conflicts.length===0){
+    html+=`<div class="alert ok" style="margin-bottom:12px"><div class="alert-icon">✅</div><div><div class="alert-title">${lang==='bg'?'Продуктите се комбинират добре!':'These products combine well!'}</div></div></div>`;
+  }else{
+    html+=`<div class="clabel">${lang==='bg'?'Конфликти':'Conflicts'}</div>`;
+    html+=conflicts.map(c=>`<div class="alert ${c.level}" style="margin-bottom:6px"><div class="alert-icon">${c.level==='bad'?'🚫':'⚠️'}</div><div><div class="alert-title">${c[lang]||c.en}</div></div></div>`).join('');
+  }
+  if(compatFound.length>0){
+    html+=`<div class="clabel" style="margin-top:10px">${lang==='bg'?'Добри комбинации':'Great combinations'}</div>`;
+    html+=compatFound.map(c=>`<div class="alert ok" style="margin-bottom:6px"><div class="alert-icon">💚</div><div><div class="alert-title">${c[lang]||c.en}</div></div></div>`).join('');
+  }
+  if(am.length>0){
+    html+=`<div class="clabel" style="margin-top:10px">☀️ ${t('am_routine')}</div>`;
+    html+=am.map((p,i)=>`<div class="step-card"><div class="step-num am">${i+1}</div><div class="step-name">${p.name}</div></div>`).join('');
+  }
+  if(pm.length>0){
+    html+=`<div class="clabel" style="margin-top:10px">🌙 ${t('pm_routine')}</div>`;
+    html+=pm.map((p,i)=>`<div class="step-card"><div class="step-num pm">${i+1}</div><div class="step-name">${p.name}</div></div>`).join('');
+  }
+  html+=`<button onclick="closeModal('combine-modal')" style="width:100%;background:none;border:none;padding:12px;font-size:12px;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:8px">${lang==='bg'?'Затвори':'Close'}</button>`;
+  document.getElementById('combine-modal-content').innerHTML=html;
+}
+
+function renderProducts(){
+  const el=document.getElementById('tab-content-products');
+  let html='';
+  if(myProducts.length>0){
+    html+=`<div class="clabel">${lang==='bg'?'Запазени продукти':'Saved products'} (${myProducts.length})</div><div class="card">`;
+    html+=myProducts.map((p,i)=>{
+      const score=getProfileScore(p);
+      return `<div class="prod-row" onclick='openProductModal(${JSON.stringify(p).replace(/'/g,"&#39;")})'>
+        <div class="prod-img">${p.image?`<img src="${p.image}" onerror="this.parentElement.innerHTML='🌸'"/>`:'🌸'}</div>
+        <div style="flex:1;min-width:0"><div class="prod-name">${p.name}</div><div class="prod-brand">${p.brand||''}</div></div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span class="badge ${score.cls}">${score.short}</span>
+          <button onclick="event.stopPropagation();removeProduct(${i})" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px">✕</button>
+        </div>
+      </div>`;
+    }).join('');
+    html+=`</div>`;
+  }
+  html+=`<div class="clabel" style="margin-top:16px">${t('bad_products_tab')}</div><div class="card">`;
+  if(badProducts.length>0){
+    html+=badProducts.map((p,i)=>`<div class="prod-row">
+      <div class="prod-img" style="font-size:20px">❌</div>
+      <div style="flex:1;min-width:0"><div class="prod-name">${p.name}</div><div class="prod-brand">${p.note||''}</div></div>
+      <button onclick="removeBadProduct(${i})" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px">✕</button>
+    </div>`).join('');
+  }
+  html+=`<div style="padding:12px 0;${badProducts.length?'border-top:1px solid var(--border)':''}">
+    <div class="search-row">
+      <input id="bad-prod-input" class="search-input" placeholder="${lang==='bg'?'Продукт, който не ми отиде':'Product that did not work'}" style="background:var(--warm)"/>
+      <button class="search-btn" onclick="addBadProduct()">${lang==='bg'?'Добави':'Add'}</button>
+    </div>
+  </div></div>`;
+  if(myProducts.length===0&&badProducts.length===0){
+    el.innerHTML=`<div class="empty"><div style="font-size:40px;margin-bottom:14px">🌸</div><h3>${t('no_products')}</h3><p>${t('no_products_sub')}</p></div>`;
+    return;
+  }
+  el.innerHTML=html;
+}
+
+function saveProduct(product){
+  if(!myProducts.find(p=>p.barcode===product.barcode)){myProducts.push(product);localStorage.setItem('myskin_products',JSON.stringify(myProducts));}
+  closeModal('product-modal');
+  if(currentTab==='products')renderProducts();
+}
+
+function removeProduct(i){myProducts.splice(i,1);localStorage.setItem('myskin_products',JSON.stringify(myProducts));renderProducts();}
+function addBadProduct(){const v=document.getElementById('bad-prod-input').value.trim();if(!v)return;badProducts.push({name:v,addedAt:Date.now()});localStorage.setItem('myskin_bad_products',JSON.stringify(badProducts));renderProducts();}
+function removeBadProduct(i){badProducts.splice(i,1);localStorage.setItem('myskin_bad_products',JSON.stringify(badProducts));renderProducts();}
+
+function renderRoutine(){
+  const el=document.getElementById('tab-content-routine');
+  el.innerHTML=`<div class="tab-btn-row">
+    <button class="tab-btn active" id="rbtn-check" onclick="showRoutineSection('check')">${t('check_routine')}</button>
+    <button class="tab-btn inactive" id="rbtn-create" onclick="showRoutineSection('create')">${t('create_routine')}</button>
+  </div><div id="routine-section"></div>`;
+  showRoutineSection('check');
+}
+
+function showRoutineSection(type){
+  const el=document.getElementById('routine-section');
+  document.getElementById('rbtn-check').className='tab-btn '+(type==='check'?'active':'inactive');
+  document.getElementById('rbtn-create').className='tab-btn '+(type==='create'?'active':'inactive');
+  if(type==='check'){
+    if(myProducts.length<2){el.innerHTML=`<div class="empty"><div style="font-size:40px;margin-bottom:14px">🌿</div><h3>${lang==='bg'?'Нужни са поне 2 продукта':'Need at least 2 products'}</h3><p>${lang==='bg'?'Добави продукти от Search':'Add products from Search tab'}</p></div>`;return;}
+    const allKi=myProducts.flatMap(p=>p.keyIngredients||[]);
+    const conflicts=[];
+    CONFLICTS.forEach(c=>{if(allKi.some(i=>i.includes(c.a))&&allKi.some(i=>i.includes(c.b)))conflicts.push(c);});
+    const am=[],pm=[];
+    myProducts.forEach(p=>{
+      const k=p.keyIngredients||[];
+      const isPM=k.some(x=>['retinol','aha','bha','glycolic acid','salicylic acid','lactic acid'].includes(x));
+      const isAM=k.some(x=>['spf','vitamin c'].includes(x));
+      if(isPM&&!isAM)pm.push(p);else if(isAM&&!isPM)am.push(p);else{am.push(p);pm.push(p);}
+    });
+    const userGoals=profile?(profile.goals||[]):[];
+    const allBenefits=[...new Set(allKi.flatMap(i=>(INGREDIENT_GOALS[i]||[]).filter(g=>userGoals.includes(g))))];
+    let html='';
+    if(conflicts.length===0){
+      html+=`<div class="alert ok" style="margin-bottom:12px"><div class="alert-icon">✅</div><div><div class="alert-title">${lang==='bg'?'Всички продукти се комбинират добре':'All products combine well'}</div></div></div>`;
+    }else{
+      html+=`<div class="clabel">${lang==='bg'?'Конфликти':'Conflicts'}</div>`;
+      html+=conflicts.map(c=>`<div class="alert ${c.level}" style="margin-bottom:8px"><div class="alert-icon">${c.level==='bad'?'🚫':'⚠️'}</div><div><div class="alert-title">${c[lang]||c.en}</div></div></div>`).join('');
+    }
+    if(allBenefits.length>0){
+      html+=`<div class="card" style="margin-top:12px"><div class="clabel">${lang==='bg'?'Какво постигаш с тази рутина':'What your routine achieves'}</div>
+        ${allBenefits.map(g=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)"><span>🌸</span><span style="font-size:13px">${GOAL_LABELS[lang]?.[g]||GOAL_LABELS.en[g]||g}</span></div>`).join('')}</div>`;
+    }
+    if(am.length>0){html+=`<div class="clabel" style="margin-top:14px">☀️ ${t('am_routine')}</div>`;html+=am.map((p,i)=>`<div class="step-card"><div class="step-num am">${i+1}</div><div class="step-name">${p.name}</div><div class="step-note">${p.brand||''}</div></div>`).join('');}
+    if(pm.length>0){html+=`<div class="clabel" style="margin-top:14px">🌙 ${t('pm_routine')}</div>`;html+=pm.map((p,i)=>`<div class="step-card"><div class="step-num pm">${i+1}</div><div class="step-name">${p.name}</div><div class="step-note">${p.brand||''}</div></div>`).join('');}
+    el.innerHTML=html;
+  }else{
+    const userGoals=profile?(profile.goals||[]):[];
+    const goalSuggestions={hydration:['hyaluronic acid','ceramide','squalane'],aging:['retinol','peptide','vitamin c'],brightening:['vitamin c','niacinamide','glycolic acid'],acne:['salicylic acid','niacinamide','zinc'],pigmentation:['vitamin c','azelaic acid','niacinamide'],barrier:['ceramide','squalane','hyaluronic acid'],sensitivity:['ceramide','bakuchiol','hyaluronic acid'],firmness:['peptide','retinol','vitamin c'],pores:['niacinamide','salicylic acid','zinc']};
+    const suggestedIngs=[...new Set(userGoals.flatMap(g=>goalSuggestions[g]||[]))];
+    const steps=[{name:lang==='bg'?'Измивен продукт':'Cleanser',note:lang==='bg'?'Сутрин и вечер':'Morning & evening'},{name:lang==='bg'?'Тоник':'Toner',note:lang==='bg'?'По желание':'Optional'},{name:lang==='bg'?'Серум':'Serum',note:lang==='bg'?'Активни съставки':'Active ingredients'},{name:lang==='bg'?'Хидратиращ крем':'Moisturiser',note:lang==='bg'?'Заключва хидратацията':'Locks in hydration'},{name:'SPF',note:lang==='bg'?'Само сутрин':'Morning only'}];
+    let html=`<div class="alert info" style="margin-bottom:14px"><div class="alert-icon">✨</div><div>
+      <div class="alert-title">${lang==='bg'?'Препоръки за теб':'Recommendations for you'}</div>
+      ${suggestedIngs.length>0?`<div class="alert-desc">${lang==='bg'?'Търси продукти с:':'Look for products with:'} ${suggestedIngs.join(', ')}</div>`:''}
+    </div></div>`;
+    html+=`<div class="clabel">${lang==='bg'?'Структура на рутина':'Routine structure'}</div>`;
+    html+=steps.map((s,i)=>`<div class="step-card"><div class="step-num am">${i+1}</div><div style="flex:1"><div class="step-name">${s.name}</div><div class="step-note">${s.note}</div></div></div>`).join('');
+    el.innerHTML=html;
+  }
+}
+
+function renderProfileTab(){
+  const el=document.getElementById('tab-content-profile');
+  if(!profile){el.innerHTML='';return;}
+  const l=lang;
+  const skinType=SKIN_TYPES.find(s=>s.v===profile.skinType);
+  const concerns=(profile.concerns||[]).map(v=>CONCERNS_LIST.find(c=>c.v===v)).filter(Boolean);
+  const goals=(profile.goals||[]).map(v=>GOALS_LIST.find(g=>g.v===v)).filter(Boolean);
+  const sensitivities=(profile.sensitivities||[]).filter(v=>v!=='none').map(v=>SENSITIVITIES.find(s=>s.v===v)).filter(Boolean);
+  let html=`<div style="text-align:center;padding:24px 0 20px">
+    <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--mint-light),var(--rose-light));border:3px solid var(--rose);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;overflow:hidden">
+      <svg width="48" height="60" viewBox="0 0 48 60" fill="none"><ellipse cx="24" cy="18" rx="13" ry="16" fill="var(--rose-mid,#E8A0B0)"/><path d="M5 60 C5 38 15 32 24 32 C33 32 43 38 43 60" fill="var(--rose-mid,#E8A0B0)"/></svg>
+    </div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400">${skinType?skinType[l]||skinType.en:''} ${l==='bg'?'кожа':'skin'}</div>
+    <div style="font-size:12px;color:var(--text2);margin-top:4px">${myProducts.length} ${l==='bg'?'продукта':'products'}</div>
+  </div>
+  <div class="card">
+    <div class="profile-row"><span style="font-size:14px">${t('skin_type')}</span><span style="font-size:13px;color:var(--rose-deep);font-weight:500">${skinType?skinType[l]||skinType.en:'—'}</span></div>
+    <div class="profile-row" style="flex-direction:column;align-items:flex-start;gap:8px">
+      <span style="font-size:14px">${t('concerns')}</span>
+      <div>${concerns.map(c=>`<span class="multi-tag">${c.icon} ${c[l]||c.en}</span>`).join('')||'—'}</div>
+    </div>
+    <div class="profile-row" style="flex-direction:column;align-items:flex-start;gap:8px">
+      <span style="font-size:14px">${t('goals')}</span>
+      <div>${goals.map(g=>`<span class="multi-tag" style="background:var(--mint-light);color:var(--mint-deep)">${g.icon} ${g[l]||g.en}</span>`).join('')||'—'}</div>
+    </div>
+    ${sensitivities.length>0?`<div class="profile-row" style="flex-direction:column;align-items:flex-start;gap:8px">
+      <span style="font-size:14px">${t('bad_ings')}</span>
+      <div>${sensitivities.map(s=>`<span class="multi-tag" style="background:var(--bad-bg);color:var(--bad)">${s[l]||s.en}</span>`).join('')}</div>
+    </div>`:''}
+    ${profile.goodIngs?`<div class="profile-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+      <span style="font-size:14px">${t('good_ings')}</span><span style="font-size:12px;color:var(--ok)">${profile.goodIngs}</span>
+    </div>`:''}
+    ${profile.badIngs?`<div class="profile-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+      <span style="font-size:14px">${t('bad_ings')}</span><span style="font-size:12px;color:var(--bad)">${profile.badIngs}</span>
+    </div>`:''}
+  </div>
+  <button class="btn-cta" style="width:100%;margin-bottom:8px" onclick="editProfile()">${t('edit_profile')}</button>
+  <div class="card"><div class="profile-row" onclick="resetApp()" style="cursor:pointer">
+    <span style="font-size:14px;color:var(--bad)">${t('reset')}</span>
+  </div></div>`;
+  el.innerHTML=html;
+}
+
+function editProfile(){
+  obData={...profile};obStep=1;
+  document.getElementById('screen-app').classList.remove('active');
+  document.getElementById('screen-onboarding').classList.add('active');
+  renderOnboarding();
+}
+
+function checkConflicts(np){
+  const ex=myProducts.flatMap(p=>p.keyIngredients||[]).map(i=>i.toLowerCase());
   const ni=(np.keyIngredients||[]).map(i=>i.toLowerCase());
   return CONFLICTS.filter(c=>(ex.some(i=>i.includes(c.a))&&ni.some(i=>i.includes(c.b)))||(ni.some(i=>i.includes(c.a))&&ex.some(i=>i.includes(c.b))));
 }
-function showResultModal(product){
-  const content=document.getElementById('result-content');
-  const conflicts=checkProductConflicts(product);
-  let ch='';
-  if(conflicts.length>0)ch=`<div style="margin-bottom:16px"><div class="section-label">Conflicts with your products</div>${conflicts.map(c=>`<div class="conflict-alert ${c.level}"><div class="conflict-icon">${c.level==='danger'?'🚫':'⚠️'}</div><div><div class="conflict-title">${c.msg.split('.')[0]}</div><div class="conflict-desc">${c.msg}</div></div></div>`).join('')}</div>`;
-  else if(products.length>0)ch=`<div class="conflict-alert ok" style="margin-bottom:16px"><div class="conflict-icon">✅</div><div><div class="conflict-title">Compatible with your routine</div><div class="conflict-desc">No conflicts found.</div></div></div>`;
-  const kh=product.keyIngredients&&product.keyIngredients.length>0?`<div style="margin-bottom:16px"><div class="section-label">Key ingredients</div><div>${product.keyIngredients.map(i=>`<span class="ingredient-chip key">${INGREDIENT_EMOJIS[i]||'•'} ${i}</span>`).join('')}</div></div>`:'';
-  content.innerHTML=`<div class="result-product-header"><div class="result-icon">${product.emoji||'🧴'}</div><div><div class="result-name">${product.name}</div><div class="result-brand">${product.brand||'Unknown brand'}</div></div></div>${ch}${kh}${product.ingredients?`<div style="margin-bottom:16px"><div class="section-label">Ingredients</div><p style="font-size:12px;color:var(--text2);line-height:1.6">${product.ingredients.substring(0,300)}${product.ingredients.length>300?'…':''}</p></div>`:''}<button class="add-btn" onclick='addProduct(${JSON.stringify(product).replace(/'/g,"&#39;")})'>Add to my routine</button><button onclick="closeResult()" style="width:100%;background:none;border:none;padding:12px;font-size:14px;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:4px">Dismiss</button>`;
-  document.getElementById('result-modal').classList.add('open');
+
+function extractKey(text){
+  if(!text)return[];
+  return['retinol','vitamin c','ascorbic acid','niacinamide','hyaluronic acid','glycolic acid','salicylic acid','aha','bha','benzoyl peroxide','peptide','ceramide','spf','zinc','lactic acid','bakuchiol','squalane','azelaic acid','kojic acid'].filter(k=>text.toLowerCase().includes(k));
 }
-function addProduct(product){
-  if(typeof product==='string')product=JSON.parse(product);
-  if(!products.find(p=>p.barcode===product.barcode)){products.push(product);localStorage.setItem('myskin_products',JSON.stringify(products));}
-  closeResult();renderHome();
-}
-function renderHome(){
-  if(userProfile)document.getElementById('home-greeting').textContent=`${userProfile.skinType} skin · ${userProfile.concern} focus`;
-  const list=document.getElementById('products-list');
-  if(products.length===0)list.innerHTML=`<div class="empty-state"><div class="emoji">🧴</div><h3>No products yet</h3><p>Search your first product to get started</p></div>`;
-  else list.innerHTML=products.map((p,i)=>`<div class="product-row" onclick="showResult(${i})"><div class="product-icon">${p.emoji||'🧴'}</div><div class="product-info"><div class="product-name">${p.name}</div><div class="product-brand">${p.brand||''}</div></div><span class="badge badge-ok">Added</span></div>`).join('');
-  renderConflicts();
-}
-function renderConflicts(){
-  const summary=document.getElementById('conflict-summary');
-  if(products.length<2){summary.innerHTML='';return;}
-  const all=products.flatMap(p=>p.keyIngredients||[]).map(i=>i.toLowerCase());
-  const found=CONFLICTS.filter(c=>all.some(i=>i.includes(c.a))&&all.some(i=>i.includes(c.b)));
-  if(found.length===0)summary.innerHTML=`<div class="conflict-alert ok" style="margin-bottom:12px"><div class="conflict-icon">✅</div><div><div class="conflict-title">Your products are compatible</div><div class="conflict-desc">No major conflicts found.</div></div></div>`;
-  else summary.innerHTML=found.map(c=>`<div class="conflict-alert ${c.level}" style="margin-bottom:10px"><div class="conflict-icon">${c.level==='danger'?'🚫':'⚠️'}</div><div><div class="conflict-title">${c.msg.split('.')[0]}</div><div class="conflict-desc">${c.msg}</div></div></div>`).join('');
-}
-function closeResult(){document.getElementById('result-modal').classList.remove('open');}
-function showResult(i){showResultModal(products[i]);}
-function renderRoutine(){
-  const content=document.getElementById('routine-content');
-  if(products.length<1){content.innerHTML=`<div class="empty-state"><div class="emoji">✨</div><h3>Add products first</h3><p>Search at least 1 product to build your routine</p></div>`;return;}
-  const am=[],pm=[];
-  products.forEach(p=>{const k=(p.keyIngredients||[]).map(i=>i.toLowerCase());const isPM=k.some(x=>['retinol','aha','bha','glycolic acid','salicylic acid'].includes(x));const isAM=k.some(x=>['spf','vitamin c'].includes(x));if(isPM&&!isAM)pm.push(p);else if(isAM)am.push(p);else{am.push(p);pm.push(p);}});
-  content.innerHTML=`<div class="card" style="margin-bottom:12px"><div class="routine-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>Morning routine</div>${am.length===0?'<p style="font-size:13px;color:var(--text2)">No morning products yet</p>':am.map((p,i)=>`<div class="step-row"><div class="step-num">${i+1}</div><div class="product-icon" style="width:36px;height:36px;font-size:18px">${p.emoji}</div><div><div class="step-name">${p.name}</div><div class="step-note">${p.brand||''}</div></div></div>`).join('')}</div><div class="card"><div class="routine-time"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>Evening routine</div>${pm.length===0?'<p style="font-size:13px;color:var(--text2)">No evening products yet</p>':pm.map((p,i)=>`<div class="step-row"><div class="step-num">${i+1}</div><div class="product-icon" style="width:36px;height:36px;font-size:18px">${p.emoji}</div><div><div class="step-name">${p.name}</div><div class="step-note">${p.brand||''}</div></div></div>`).join('')}</div>`;
-}
-function renderProfile(){
-  if(!userProfile)return;
-  document.getElementById('profile-display').innerHTML=`<div class="profile-option"><span class="profile-label">Skin type</span><span class="profile-value">${userProfile.skinType||'—'}</span></div><div class="profile-option"><span class="profile-label">Main concern</span><span class="profile-value">${userProfile.concern||'—'}</span></div><div class="profile-option"><span class="profile-label">Sensitivity</span><span class="profile-value">${userProfile.sensitivity||'—'}</span></div><div class="profile-option"><span class="profile-label">Products scanned</span><span class="profile-value">${products.length}</span></div>`;
-}
-function resetApp(){if(confirm('Delete all data?')){localStorage.clear();location.reload();}}
-if(userProfile){startApp();}else{renderOnboarding();}
-document.getElementById('result-modal').addEventListener('click',function(e){if(e.target===this)closeResult();});
+
+function resetApp(){if(confirm(lang==='bg'?'Изтриване на всички данни?':'Delete all data?')){localStorage.clear();location.reload();}}
+
+document.querySelectorAll('.modal-overlay').forEach(el=>{el.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});});
+
+if(profile){
+  lang=localStorage.getItem('myskin_lang')||profile.lang||'en';
+  document.getElementById('screen-onboarding').classList.remove('active');
+  document.getElementById('screen-app').classList.add('active');
+  setLang(lang);renderTab('home');
+}else{renderOnboarding();}
 </script>
 </body>
 </html>
