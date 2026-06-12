@@ -245,7 +245,7 @@ function startCamera(){
     html5QrCode.start({facingMode:"environment"},{fps:10,qrbox:{width:250,height:120},formatsToSupport:[Html5QrcodeSupportedFormats.EAN_13,Html5QrcodeSupportedFormats.EAN_8,Html5QrcodeSupportedFormats.UPC_A,Html5QrcodeSupportedFormats.UPC_E,Html5QrcodeSupportedFormats.CODE_128]},(text)=>{if(!scannerActive){scannerActive=true;closeScanner();lookupBarcode(text);}},()=>{}).catch(e=>console.log(e));
   }catch(e){console.log(e);}
 }
-function lookupManual(){const v=document.getElementById('manual-barcode').value.trim();if(!v)return;closeScanner();lookupBarcode(v);}
+function lookupManual(){const v=document.getElementById('manual-barcode').value.trim();if(!v)return;if(html5QrCode){html5QrCode.stop().catch(()=>{});html5QrCode.clear();html5QrCode=null;}scannerActive=false;document.getElementById('scanner-overlay').classList.remove('open');lookupBarcode(v);}
 async function lookupBarcode(barcode){
   showLoading('Looking up product…');
   try{
