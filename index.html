@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>MySkin — Skincare Routine Analyzer</title>
+  <meta name="description" content="Scan your skincare products and find out if they work together." />
+  <meta name="theme-color" content="#1a1a2e" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #F9F7F4;
+      --surface: #FFFFFF;
+      --surface2: #F2EFE9;
+      --text: #1A1A1A;
+      --text2: #6B6660;
+      --text3: #A09A94;
+      --accent: #C4956A;
+      --accent2: #E8D5C0;
+      --danger: #D64F4F;
+      --danger-bg: #FDF0F0;
+      --success: #4A7C59;
+      --success-bg: #EDF4EF;
+      --warn: #B07D2E;
+      --warn-bg: #FBF4E8;
+      --border: rgba(0,0,0,0.08);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --shadow: 0 2px 16px rgba(0,0,0,0.06);
+    }
+
+    html, body { height: 100%; background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); }
+
+    /* ── screens ── */
+    .screen { display: none; min-height: 100dvh; flex-direction: column; }
+    .screen.active { display: flex; }
+
+    /* ── nav ── */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--surface); border-top: 1px solid var(--border);
+      display: flex; z-index: 100; padding-bottom: env(safe-area-inset-bottom);
+    }
+    .nav-btn {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      gap: 3px; padding: 10px 0; background: none; border: none;
+      font-family: 'DM Sans', sans-serif; font-size: 10px; color: var(--text3);
+      cursor: pointer; transition: color 0.2s;
+    }
+    .nav-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+    .nav-btn.active { color: var(--accent); }
+
+    /* ── page header ── */
+    .page-header { padding: 56px 20px 16px; }
+    .page-header h1 { font-family: 'DM Serif Display', serif; font-size: 28px; font-weight: 400; }
+    .page-header p { font-size: 14px; color: var(--text2); margin-top: 4px; }
+
+    /* ── scroll content ── */
+    .scroll-content { flex: 1; overflow-y: auto; padding: 0 20px 100px; }
+
+    /* ── cards ── */
+    .card {
+      background: var(--surface); border-radius: var(--radius);
+      border: 1px solid var(--border); padding: 16px; margin-bottom: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    /* ── scan button ── */
+    .scan-hero {
+      background: var(--text); border-radius: var(--radius);
+      padding: 32px 20px; text-align: center; margin-bottom: 20px;
+      position: relative; overflow: hidden;
+    }
+    .scan-hero::before {
+      content: ''; position: absolute; top: -40px; right: -40px;
+      width: 160px; height: 160px; border-radius: 50%;
+      background: var(--accent); opacity: 0.12;
+    }
+    .scan-hero h2 { font-family: 'DM Serif Display', serif; font-size: 22px; color: #fff; font-weight: 400; }
+    .scan-hero p { font-size: 13px; color: rgba(255,255,255,0.6); margin: 6px 0 20px; }
+    .btn-scan {
+      background: var(--accent); color: #fff; border: none;
+      border-radius: 50px; padding: 14px 32px; font-size: 15px;
+      font-family: 'DM Sans', sans-serif; font-weight: 500;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+      transition: opacity 0.2s;
+    }
+    .btn-scan:active { opacity: 0.8; }
+    .btn-scan svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    /* ── section label ── */
+    .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); margin-bottom: 10px; margin-top: 4px; }
+
+    /* ── product row ── */
+    .product-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 0; border-bottom: 1px solid var(--border);
+    }
+    .product-row:last-child { border-bottom: none; }
+    .product-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: var(--surface2); display: flex; align-items: center;
+      justify-content: center; flex-shrink: 0; font-size: 22px;
+    }
+    .product-info { flex: 1; min-width: 0; }
+    .product-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .product-brand { font-size: 12px; color: var(--text2); }
+    .badge {
+      font-size: 10px; font-weight: 600; padding: 3px 8px;
+      border-radius: 20px; flex-shrink: 0; letter-spacing: 0.04em;
+    }
+    .badge-ok { background: var(--success-bg); color: var(--success); }
+    .badge-warn { background: var(--warn-bg); color: var(--warn); }
+    .badge-bad { background: var(--danger-bg); color: var(--danger); }
+
+    /* ── conflict alert ── */
+    .conflict-alert {
+      border-radius: var(--radius-sm); padding: 14px;
+      margin-bottom: 10px; display: flex; gap: 12px; align-items: flex-start;
+    }
+    .conflict-alert.danger { background: var(--danger-bg); border: 1px solid rgba(214,79,79,0.2); }
+    .conflict-alert.warn { background: var(--warn-bg); border: 1px solid rgba(176,125,46,0.2); }
+    .conflict-alert.ok { background: var(--success-bg); border: 1px solid rgba(74,124,89,0.2); }
+    .conflict-icon { font-size: 20px; flex-shrink: 0; }
+    .conflict-title { font-size: 13px; font-weight: 600; }
+    .conflict-desc { font-size: 12px; color: var(--text2); margin-top: 3px; line-height: 1.5; }
+
+    /* ── routine blocks ── */
+    .routine-time {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; font-weight: 600; color: var(--text2);
+      margin-bottom: 10px; margin-top: 4px;
+    }
+    .routine-time svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .step-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0; border-bottom: 1px solid var(--border);
+    }
+    .step-row:last-child { border-bottom: none; }
+    .step-num {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: var(--surface2); display: flex; align-items: center;
+      justify-content: center; font-size: 11px; font-weight: 600;
+      color: var(--text2); flex-shrink: 0;
+    }
+    .step-name { font-size: 13px; font-weight: 500; }
+    .step-note { font-size: 11px; color: var(--text2); }
+
+    /* ── profile ── */
+    .profile-option {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 0; border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .profile-option:last-child { border-bottom: none; }
+    .profile-label { font-size: 14px; }
+    .profile-value { font-size: 13px; color: var(--accent); font-weight: 500; }
+
+    /* ── onboarding ── */
+    #screen-onboarding {
+      background: var(--bg); padding: 40px 24px;
+      justify-content: center; align-items: center; text-align: center;
+    }
+    .ob-emoji { font-size: 52px; margin-bottom: 16px; }
+    .ob-title { font-family: 'DM Serif Display', serif; font-size: 30px; font-weight: 400; margin-bottom: 8px; }
+    .ob-sub { font-size: 15px; color: var(--text2); margin-bottom: 36px; line-height: 1.6; }
+    .ob-options { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; margin-bottom: 28px; }
+    .ob-option {
+      background: var(--surface); border: 2px solid var(--border);
+      border-radius: var(--radius-sm); padding: 14px 16px;
+      font-size: 14px; font-weight: 500; cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      text-align: left; font-family: 'DM Sans', sans-serif;
+    }
+    .ob-option.selected { border-color: var(--accent); background: #FDF8F3; }
+    .ob-option span { display: block; font-size: 12px; color: var(--text2); font-weight: 400; margin-top: 2px; }
+    .btn-next {
+      background: var(--text); color: #fff; border: none;
+      border-radius: 50px; padding: 16px 40px; font-size: 15px;
+      font-family: 'DM Sans', sans-serif; font-weight: 500;
+      cursor: pointer; width: 100%; max-width: 320px;
+      transition: opacity 0.2s;
+    }
+    .btn-next:active { opacity: 0.8; }
+    .ob-progress { display: flex; gap: 6px; margin-bottom: 32px; }
+    .ob-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); transition: background 0.3s; }
+    .ob-dot.active { background: var(--accent); }
+
+    /* ── scanner overlay ── */
+    #scanner-overlay {
+      display: none; position: fixed; inset: 0; background: #000;
+      z-index: 200; flex-direction: column;
+    }
+    #scanner-overlay.open { display: flex; }
+    #scanner-video { width: 100%; flex: 1; object-fit: cover; }
+    .scanner-ui {
+      position: absolute; inset: 0; display: flex;
+      flex-direction: column; align-items: center; justify-content: center; pointer-events: none;
+    }
+    .scanner-frame {
+      width: 240px; height: 120px; border: 2px solid var(--accent);
+      border-radius: 12px; position: relative;
+    }
+    .scanner-line {
+      position: absolute; left: 0; right: 0; height: 2px;
+      background: var(--accent); top: 50%; animation: scan 2s linear infinite;
+    }
+    @keyframes scan { 0% { top: 10%; } 100% { top: 90%; } }
+    .scanner-label { color: #fff; font-size: 13px; margin-top: 20px; opacity: 0.7; }
+    .scanner-close {
+      position: absolute; top: 50px; right: 20px;
+      background: rgba(255,255,255,0.15); border: none; color: #fff;
+      width: 40px; height: 40px; border-radius: 50%; font-size: 20px;
+      cursor: pointer; pointer-events: all; display: flex; align-items: center; justify-content: center;
+    }
+    .scanner-manual {
+      position: absolute; bottom: 60px; left: 0; right: 0;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      pointer-events: all;
+    }
+    .scanner-manual input {
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+      color: #fff; border-radius: 50px; padding: 12px 20px;
+      font-size: 14px; width: 260px; text-align: center;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .scanner-manual input::placeholder { color: rgba(255,255,255,0.5); }
+    .scanner-manual button {
+      background: var(--accent); color: #fff; border: none;
+      border-radius: 50px; padding: 12px 28px; font-size: 14px;
+      font-family: 'DM Sans', sans-serif; cursor: pointer;
+    }
+
+    /* ── result modal ── */
+    #result-modal {
+      display: none; position: fixed; inset: 0; z-index: 300;
+      background: rgba(0,0,0,0.5); align-items: flex-end;
+    }
+    #result-modal.open { display: flex; }
+    .result-sheet {
+      background: var(--bg); border-radius: 24px 24px 0 0;
+      width: 100%; max-height: 85vh; overflow-y: auto;
+      padding: 20px 20px 40px;
+    }
+    .result-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
+    .result-product-header { display: flex; gap: 14px; align-items: center; margin-bottom: 20px; }
+    .result-icon { width: 56px; height: 56px; border-radius: 14px; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 28px; }
+    .result-name { font-size: 17px; font-weight: 600; }
+    .result-brand { font-size: 13px; color: var(--text2); }
+    .ingredient-chip {
+      display: inline-block; background: var(--surface2); border-radius: 20px;
+      padding: 5px 12px; font-size: 12px; margin: 4px; cursor: pointer;
+    }
+    .ingredient-chip.key { background: var(--accent2); color: #6B4C2A; font-weight: 500; }
+    .add-btn {
+      background: var(--accent); color: #fff; border: none;
+      border-radius: 50px; padding: 14px; font-size: 15px;
+      font-family: 'DM Sans', sans-serif; font-weight: 500;
+      cursor: pointer; width: 100%; margin-top: 16px;
+    }
+
+    /* ── empty state ── */
+    .empty-state { text-align: center; padding: 40px 20px; }
+    .empty-state .emoji { font-size: 40px; margin-bottom: 12px; }
+    .empty-state h3 { font-size: 16px; font-weight: 500; margin-bottom: 6px; }
+    .empty-state p { font-size: 13px; color: var(--text2); line-height: 1.5; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════ ONBOARDING ═══════════════ -->
+<div id="screen-onboarding" class="screen active">
+  <div class="ob-progress" id="ob-progress"></div>
+  <div id="ob-content"></div>
+</div>
+
+<!-- ═══════════════ HOME ═══════════════ -->
+<div id="screen-home" class="screen">
+  <div class="page-header">
+    <h1>MySkin</h1>
+    <p id="home-greeting">Your skincare, simplified.</p>
+  </div>
+  <div class="scroll-content">
+    <div class="scan-hero">
+      <h2>Scan a product</h2>
+      <p>Find out what's inside and if it works with your routine</p>
+      <button class="btn-scan" onclick="openScanner()">
+        <svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>
+        Scan barcode
+      </button>
+    </div>
+
+    <div id="conflict-summary"></div>
+
+    <div class="section-label">My products</div>
+    <div class="card" id="products-list">
+      <div class="empty-state">
+        <div class="emoji">🧴</div>
+        <h3>No products yet</h3>
+        <p>Scan your first product to get started</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ ROUTINE ═══════════════ -->
+<div id="screen-routine" class="screen">
+  <div class="page-header">
+    <h1>My Routine</h1>
+    <p>Personalized for your skin</p>
+  </div>
+  <div class="scroll-content" id="routine-content">
+    <div class="empty-state">
+      <div class="emoji">✨</div>
+      <h3>Add products first</h3>
+      <p>Scan at least 2 products and we'll build your routine</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PROFILE ═══════════════ -->
+<div id="screen-profile" class="screen">
+  <div class="page-header">
+    <h1>My Profile</h1>
+    <p>Your skin, your settings</p>
+  </div>
+  <div class="scroll-content">
+    <div class="card" id="profile-display"></div>
+    <div class="section-label" style="margin-top:8px">App</div>
+    <div class="card">
+      <div class="profile-option" onclick="resetApp()">
+        <span class="profile-label" style="color:var(--danger)">Reset all data</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ BOTTOM NAV ═══════════════ -->
+<nav class="bottom-nav" id="bottom-nav" style="display:none">
+  <button class="nav-btn active" onclick="showScreen('home')" id="nav-home">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Home
+  </button>
+  <button class="nav-btn" onclick="showScreen('routine')" id="nav-routine">
+    <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="12" y2="16"/></svg>
+    Routine
+  </button>
+  <button class="nav-btn" onclick="showScreen('profile')" id="nav-profile">
+    <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    Profile
+  </button>
+</nav>
+
+<!-- ═══════════════ SCANNER ═══════════════ -->
+<div id="scanner-overlay">
+  <video id="scanner-video" autoplay playsinline muted></video>
+  <div class="scanner-ui">
+    <div class="scanner-frame"><div class="scanner-line"></div></div>
+    <div class="scanner-label">Point at a product barcode</div>
+  </div>
+  <button class="scanner-close" onclick="closeScanner()">✕</button>
+  <div class="scanner-manual">
+    <input type="text" id="manual-barcode" placeholder="Or type barcode manually" />
+    <button onclick="lookupManual()">Look up</button>
+  </div>
+</div>
+
+<!-- ═══════════════ RESULT MODAL ═══════════════ -->
+<div id="result-modal">
+  <div class="result-sheet">
+    <div class="result-handle"></div>
+    <div id="result-content"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
+<script>
+// ── CONFIG ──
+const SUPABASE_URL = 'https://nddqqkrmjvqgqqlloojb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_Yqz7MPfatV4nQo2QGMVuGw_TsRcwjit';
+
+// ── STATE ──
+let userProfile = JSON.parse(localStorage.getItem('myskin_profile') || 'null');
+let products = JSON.parse(localStorage.getItem('myskin_products') || '[]');
+let scannerActive = false;
+let codeReader = null;
+
+// ── CONFLICTS DATABASE ──
+const CONFLICTS = [
+  { a: 'retinol', b: 'glycolic acid', level: 'danger', msg: 'Retinol + Glycolic Acid can cause severe irritation. Use them on separate nights.' },
+  { a: 'retinol', b: 'aha', level: 'danger', msg: 'Retinol + AHA can cause severe irritation and damage the skin barrier. Use on separate nights.' },
+  { a: 'retinol', b: 'salicylic acid', level: 'danger', msg: 'Retinol + Salicylic Acid can cause peeling and irritation. Alternate days.' },
+  { a: 'retinol', b: 'bha', level: 'danger', msg: 'Retinol + BHA can cause irritation. Alternate days.' },
+  { a: 'vitamin c', b: 'retinol', level: 'warn', msg: 'Vitamin C + Retinol are better used at different times — Vitamin C in the morning, Retinol at night.' },
+  { a: 'vitamin c', b: 'niacinamide', level: 'warn', msg: 'Vitamin C + Niacinamide can reduce each other\'s effectiveness. Use at different times.' },
+  { a: 'vitamin c', b: 'aha', level: 'warn', msg: 'Vitamin C + AHA can be too acidic together. Use Vitamin C in the morning and AHA at night.' },
+  { a: 'benzoyl peroxide', b: 'retinol', level: 'danger', msg: 'Benzoyl Peroxide can deactivate Retinol. Never use together.' },
+  { a: 'benzoyl peroxide', b: 'vitamin c', level: 'danger', msg: 'Benzoyl Peroxide oxidizes Vitamin C, making both less effective.' },
+  { a: 'glycolic acid', b: 'salicylic acid', level: 'warn', msg: 'Using multiple acids together can over-exfoliate. Use on alternate days.' },
+];
+
+const INGREDIENT_EMOJIS = {
+  'retinol': '🔴', 'vitamin c': '🟠', 'niacinamide': '🟡',
+  'hyaluronic acid': '💧', 'glycolic acid': '🟣', 'salicylic acid': '🟢',
+  'spf': '☀️', 'benzoyl peroxide': '⚪', 'peptide': '🔵', 'ceramide': '🛡️'
+};
+
+const PRODUCT_EMOJIS = ['🧴', '🧼', '💊', '✨', '💆', '🌿', '🫧', '🪷'];
+
+// ── ONBOARDING ──
+const OB_STEPS = [
+  {
+    emoji: '🌿',
+    title: 'Welcome to MySkin',
+    sub: 'Let\'s personalize your experience so we can analyze products for your skin.',
+    type: 'intro',
+    btnText: 'Get started'
+  },
+  {
+    emoji: '🧬',
+    title: 'What\'s your skin type?',
+    sub: 'This helps us score ingredients for you specifically.',
+    type: 'choice',
+    key: 'skinType',
+    options: [
+      { value: 'dry', label: 'Dry', desc: 'Often feels tight or flaky' },
+      { value: 'oily', label: 'Oily', desc: 'Shiny, prone to breakouts' },
+      { value: 'combination', label: 'Combination', desc: 'Oily T-zone, normal elsewhere' },
+      { value: 'normal', label: 'Normal', desc: 'Balanced, rarely problematic' },
+      { value: 'sensitive', label: 'Sensitive', desc: 'Reacts easily, prone to redness' },
+    ]
+  },
+  {
+    emoji: '🎯',
+    title: 'Main skin concern?',
+    sub: 'Pick the one that matters most right now.',
+    type: 'choice',
+    key: 'concern',
+    options: [
+      { value: 'acne', label: 'Acne & breakouts', desc: '' },
+      { value: 'aging', label: 'Anti-aging', desc: '' },
+      { value: 'hydration', label: 'Hydration', desc: '' },
+      { value: 'brightening', label: 'Brightening & tone', desc: '' },
+      { value: 'sensitivity', label: 'Redness & sensitivity', desc: '' },
+    ]
+  },
+  {
+    emoji: '⚠️',
+    title: 'Any sensitivities?',
+    sub: 'We\'ll flag products that might cause issues.',
+    type: 'choice',
+    key: 'sensitivity',
+    options: [
+      { value: 'none', label: 'None that I know of', desc: '' },
+      { value: 'fragrance', label: 'Fragrance', desc: '' },
+      { value: 'alcohol', label: 'Alcohol', desc: '' },
+      { value: 'acids', label: 'Strong acids', desc: '' },
+      { value: 'retinol', label: 'Retinol', desc: '' },
+    ]
+  }
+];
+
+let obStep = 0;
+let obAnswers = {};
+
+function renderOnboarding() {
+  const step = OB_STEPS[obStep];
+  const progress = document.getElementById('ob-progress');
+  progress.innerHTML = OB_STEPS.map((_, i) =>
+    `<div class="ob-dot ${i === obStep ? 'active' : ''}"></div>`
+  ).join('');
+
+  let html = `<div class="ob-emoji">${step.emoji}</div>
+    <div class="ob-title">${step.title}</div>
+    <div class="ob-sub">${step.sub}</div>`;
+
+  if (step.type === 'choice') {
+    html += `<div class="ob-options">` + step.options.map(o =>
+      `<button class="ob-option ${obAnswers[step.key] === o.value ? 'selected' : ''}"
+        onclick="selectOb('${step.key}','${o.value}')">
+        ${o.label}${o.desc ? `<span>${o.desc}</span>` : ''}
+      </button>`
+    ).join('') + `</div>`;
+  }
+
+  const canNext = step.type === 'intro' || obAnswers[step.key];
+  html += `<button class="btn-next" onclick="nextOb()" ${!canNext ? 'style="opacity:0.4"' : ''}>
+    ${obStep === OB_STEPS.length - 1 ? 'Start scanning →' : 'Continue →'}
+  </button>`;
+
+  document.getElementById('ob-content').innerHTML = html;
+}
+
+function selectOb(key, value) {
+  obAnswers[key] = value;
+  renderOnboarding();
+}
+
+function nextOb() {
+  const step = OB_STEPS[obStep];
+  if (step.type === 'choice' && !obAnswers[step.key]) return;
+  if (obStep < OB_STEPS.length - 1) {
+    obStep++;
+    renderOnboarding();
+  } else {
+    userProfile = { ...obAnswers, createdAt: Date.now() };
+    localStorage.setItem('myskin_profile', JSON.stringify(userProfile));
+    startApp();
+  }
+}
+
+// ── APP START ──
+function startApp() {
+  document.getElementById('screen-onboarding').classList.remove('active');
+  document.getElementById('bottom-nav').style.display = 'flex';
+  showScreen('home');
+  renderHome();
+  renderProfile();
+}
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const nb = document.getElementById('nav-' + name);
+  if (nb) nb.classList.add('active');
+  if (name === 'routine') renderRoutine();
+}
+
+// ── HOME ──
+function renderHome() {
+  if (userProfile) {
+    document.getElementById('home-greeting').textContent =
+      `${userProfile.skinType} skin · ${userProfile.concern} focus`;
+  }
+
+  const list = document.getElementById('products-list');
+  if (products.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="emoji">🧴</div><h3>No products yet</h3><p>Scan your first product to get started</p></div>`;
+  } else {
+    list.innerHTML = products.map((p, i) =>
+      `<div class="product-row" onclick="showResult(${i})">
+        <div class="product-icon">${p.emoji || '🧴'}</div>
+        <div class="product-info">
+          <div class="product-name">${p.name}</div>
+          <div class="product-brand">${p.brand || 'Unknown brand'}</div>
+        </div>
+        <span class="badge badge-ok">Added</span>
+      </div>`
+    ).join('');
+  }
+
+  renderConflicts();
+}
+
+function renderConflicts() {
+  const summary = document.getElementById('conflict-summary');
+  if (products.length < 2) { summary.innerHTML = ''; return; }
+
+  const allIngredients = products.flatMap(p => p.keyIngredients || []).map(i => i.toLowerCase());
+  const found = [];
+
+  CONFLICTS.forEach(c => {
+    const hasA = allIngredients.some(i => i.includes(c.a));
+    const hasB = allIngredients.some(i => i.includes(c.b));
+    if (hasA && hasB) found.push(c);
+  });
+
+  if (found.length === 0) {
+    summary.innerHTML = `<div class="conflict-alert ok" style="margin-bottom:12px">
+      <div class="conflict-icon">✅</div>
+      <div><div class="conflict-title">Your products are compatible</div>
+      <div class="conflict-desc">No major conflicts found in your current routine.</div></div>
+    </div>`;
+  } else {
+    summary.innerHTML = found.map(c =>
+      `<div class="conflict-alert ${c.level}" style="margin-bottom:10px">
+        <div class="conflict-icon">${c.level === 'danger' ? '🚫' : '⚠️'}</div>
+        <div><div class="conflict-title">${c.msg.split('.')[0]}</div>
+        <div class="conflict-desc">${c.msg}</div></div>
+      </div>`
+    ).join('');
+  }
+}
+
+// ── SCANNER ──
+function openScanner() {
+  document.getElementById('scanner-overlay').classList.add('open');
+  startCamera();
+}
+
+function closeScanner() {
+  document.getElementById('scanner-overlay').classList.remove('open');
+  if (codeReader) { codeReader.reset(); codeReader = null; }
+  scannerActive = false;
+}
+
+function startCamera() {
+  if (typeof ZXing === 'undefined') {
+    alert('Scanner not loaded. Please enter barcode manually below.');
+    return;
+  }
+  try {
+    codeReader = new ZXing.BrowserMultiFormatReader();
+    codeReader.decodeFromVideoDevice(null, 'scanner-video', (result, err) => {
+      if (result && !scannerActive) {
+        scannerActive = true;
+        closeScanner();
+        lookupBarcode(result.getText());
+      }
+    });
+  } catch(e) {
+    console.log('Camera error:', e);
+  }
+}
+
+function lookupManual() {
+  const val = document.getElementById('manual-barcode').value.trim();
+  if (!val) return;
+  closeScanner();
+  lookupBarcode(val);
+}
+
+// ── BARCODE LOOKUP ──
+async function lookupBarcode(barcode) {
+  showLoading('Looking up product…');
+  try {
+    const res = await fetch(`https://world.openbeautyfacts.org/api/v2/product/${barcode}.json`);
+    const data = await res.json();
+    if (data.status === 1) {
+      const p = data.product;
+      const product = {
+        barcode,
+        name: p.product_name_en || p.product_name || 'Unknown product',
+        brand: p.brands || '',
+        emoji: PRODUCT_EMOJIS[Math.floor(Math.random() * PRODUCT_EMOJIS.length)],
+        ingredients: p.ingredients_text_en || p.ingredients_text || '',
+        keyIngredients: extractKeyIngredients(p.ingredients_text_en || p.ingredients_text || ''),
+        categories: p.categories || '',
+      };
+      hideLoading();
+      showResultModal(product);
+    } else {
+      hideLoading();
+      showNotFound(barcode);
+    }
+  } catch(e) {
+    hideLoading();
+    showNotFound(barcode);
+  }
+}
+
+function extractKeyIngredients(text) {
+  if (!text) return [];
+  const keys = ['retinol','vitamin c','ascorbic acid','niacinamide','hyaluronic acid',
+    'glycolic acid','salicylic acid','aha','bha','benzoyl peroxide','peptide',
+    'ceramide','spf','zinc','kojic acid','lactic acid','bakuchiol','squalane'];
+  const lower = text.toLowerCase();
+  return keys.filter(k => lower.includes(k));
+}
+
+// ── RESULT MODAL ──
+function showResultModal(product) {
+  const content = document.getElementById('result-content');
+  const conflicts = checkProductConflicts(product);
+
+  let conflictHtml = '';
+  if (conflicts.length > 0) {
+    conflictHtml = `<div style="margin-bottom:16px">
+      <div class="section-label">Conflicts with your products</div>
+      ${conflicts.map(c => `<div class="conflict-alert ${c.level}">
+        <div class="conflict-icon">${c.level === 'danger' ? '🚫' : '⚠️'}</div>
+        <div><div class="conflict-title">${c.msg.split('.')[0]}</div>
+        <div class="conflict-desc">${c.msg}</div></div>
+      </div>`).join('')}
+    </div>`;
+  } else if (products.length > 0) {
+    conflictHtml = `<div class="conflict-alert ok" style="margin-bottom:16px">
+      <div class="conflict-icon">✅</div>
+      <div><div class="conflict-title">Compatible with your routine</div>
+      <div class="conflict-desc">No conflicts found with your current products.</div></div>
+    </div>`;
+  }
+
+  const keyHtml = product.keyIngredients.length > 0
+    ? `<div style="margin-bottom:16px">
+        <div class="section-label">Key ingredients</div>
+        <div>${product.keyIngredients.map(i =>
+          `<span class="ingredient-chip key">${INGREDIENT_EMOJIS[i] || '•'} ${i}</span>`
+        ).join('')}</div>
+      </div>` : '';
+
+  content.innerHTML = `
+    <div class="result-product-header">
+      <div class="result-icon">${product.emoji}</div>
+      <div>
+        <div class="result-name">${product.name}</div>
+        <div class="result-brand">${product.brand || 'Unknown brand'}</div>
+      </div>
+    </div>
+    ${conflictHtml}
+    ${keyHtml}
+    ${product.ingredients ? `<div style="margin-bottom:16px">
+      <div class="section-label">Ingredients</div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.6">${product.ingredients.substring(0,300)}${product.ingredients.length > 300 ? '…' : ''}</p>
+    </div>` : ''}
+    <button class="add-btn" onclick="addProduct(${JSON.stringify(product).split('"').join('&quot;')})">Add to my routine</button>
+    <button onclick="closeResult()" style="width:100%;background:none;border:none;padding:12px;font-size:14px;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:4px">Dismiss</button>
+  `;
+
+  document.getElementById('result-modal').classList.add('open');
+}
+
+function showNotFound(barcode) {
+  const content = document.getElementById('result-content');
+  content.innerHTML = `
+    <div style="text-align:center;padding:20px 0">
+      <div style="font-size:40px;margin-bottom:12px">🔍</div>
+      <div style="font-size:17px;font-weight:600;margin-bottom:8px">Product not found</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:20px">Barcode ${barcode} isn't in our database yet.</p>
+      <button onclick="closeResult()" style="background:var(--accent);color:#fff;border:none;border-radius:50px;padding:14px 32px;font-size:15px;font-family:'DM Sans',sans-serif;cursor:pointer">Close</button>
+    </div>`;
+  document.getElementById('result-modal').classList.add('open');
+}
+
+function checkProductConflicts(newProduct) {
+  const existingIngredients = products.flatMap(p => p.keyIngredients || []).map(i => i.toLowerCase());
+  const newIngredients = (newProduct.keyIngredients || []).map(i => i.toLowerCase());
+  const found = [];
+  CONFLICTS.forEach(c => {
+    const inExisting = existingIngredients.some(i => i.includes(c.a)) && newIngredients.some(i => i.includes(c.b));
+    const inNew = newIngredients.some(i => i.includes(c.a)) && existingIngredients.some(i => i.includes(c.b));
+    if (inExisting || inNew) found.push(c);
+  });
+  return found;
+}
+
+function addProduct(product) {
+  if (typeof product === 'string') product = JSON.parse(product);
+  const exists = products.find(p => p.barcode === product.barcode);
+  if (!exists) {
+    products.push(product);
+    localStorage.setItem('myskin_products', JSON.stringify(products));
+  }
+  closeResult();
+  renderHome();
+}
+
+function closeResult() {
+  document.getElementById('result-modal').classList.remove('open');
+}
+
+function showResult(index) {
+  showResultModal(products[index]);
+}
+
+// ── ROUTINE ──
+function renderRoutine() {
+  const content = document.getElementById('routine-content');
+  if (products.length < 1) {
+    content.innerHTML = `<div class="empty-state"><div class="emoji">✨</div><h3>Add products first</h3><p>Scan at least 1 product and we'll build your routine</p></div>`;
+    return;
+  }
+
+  const amProducts = [], pmProducts = [];
+  products.forEach(p => {
+    const keys = (p.keyIngredients || []).map(i => i.toLowerCase());
+    const isPM = keys.some(k => ['retinol','aha','bha','glycolic acid','salicylic acid'].includes(k));
+    const isAM = keys.some(k => ['spf','vitamin c'].includes(k));
+    if (isPM && !isAM) pmProducts.push(p);
+    else if (isAM) amProducts.push(p);
+    else { amProducts.push(p); pmProducts.push(p); }
+  });
+
+  const routineOrder = ['cleanser','toner','serum','moisturizer','spf','oil'];
+
+  content.innerHTML = `
+    <div class="card" style="margin-bottom:12px">
+      <div class="routine-time">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+        Morning routine
+      </div>
+      ${amProducts.length === 0 ? '<p style="font-size:13px;color:var(--text2)">No morning products yet</p>' :
+        amProducts.map((p, i) => `<div class="step-row">
+          <div class="step-num">${i + 1}</div>
+          <div class="product-icon" style="width:36px;height:36px;font-size:18px">${p.emoji}</div>
+          <div><div class="step-name">${p.name}</div>
+          <div class="step-note">${p.brand || ''}</div></div>
+        </div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="routine-time">
+        <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        Evening routine
+      </div>
+      ${pmProducts.length === 0 ? '<p style="font-size:13px;color:var(--text2)">No evening products yet</p>' :
+        pmProducts.map((p, i) => `<div class="step-row">
+          <div class="step-num">${i + 1}</div>
+          <div class="product-icon" style="width:36px;height:36px;font-size:18px">${p.emoji}</div>
+          <div><div class="step-name">${p.name}</div>
+          <div class="step-note">${p.brand || ''}</div></div>
+        </div>`).join('')}
+    </div>
+  `;
+}
+
+// ── PROFILE ──
+function renderProfile() {
+  if (!userProfile) return;
+  const display = document.getElementById('profile-display');
+  display.innerHTML = `
+    <div class="profile-option"><span class="profile-label">Skin type</span><span class="profile-value">${userProfile.skinType || '—'}</span></div>
+    <div class="profile-option"><span class="profile-label">Main concern</span><span class="profile-value">${userProfile.concern || '—'}</span></div>
+    <div class="profile-option"><span class="profile-label">Sensitivity</span><span class="profile-value">${userProfile.sensitivity || '—'}</span></div>
+    <div class="profile-option"><span class="profile-label">Products scanned</span><span class="profile-value">${products.length}</span></div>
+  `;
+}
+
+function resetApp() {
+  if (confirm('This will delete all your products and profile. Are you sure?')) {
+    localStorage.clear();
+    location.reload();
+  }
+}
+
+// ── LOADING ──
+function showLoading(msg) {
+  const el = document.createElement('div');
+  el.id = 'loading-overlay';
+  el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:400;display:flex;align-items:center;justify-content:center;';
+  el.innerHTML = `<div style="background:#fff;border-radius:16px;padding:24px 32px;text-align:center">
+    <div style="font-size:28px;margin-bottom:8px">🔍</div>
+    <div style="font-size:14px;font-weight:500">${msg}</div>
+  </div>`;
+  document.body.appendChild(el);
+}
+function hideLoading() {
+  const el = document.getElementById('loading-overlay');
+  if (el) el.remove();
+}
+
+// ── INIT ──
+if (userProfile) {
+  startApp();
+} else {
+  renderOnboarding();
+}
+
+// Close modals on backdrop click
+document.getElementById('result-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeResult();
+});
+</script>
+</body>
+</html>
