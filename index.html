@@ -87,11 +87,13 @@
     .ingredient-chip { display: inline-block; background: var(--surface2); border-radius: 20px; padding: 5px 12px; font-size: 12px; margin: 4px; }
     .ingredient-chip.key { background: var(--accent2); color: #6B4C2A; font-weight: 500; }
     .add-btn { background: var(--accent); color: #fff; border: none; border-radius: 50px; padding: 14px; font-size: 15px; font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer; width: 100%; margin-top: 16px; }
+    .search-results { margin-bottom: 12px; }
+    .search-result-row { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--surface); border-radius: var(--radius-sm); margin-bottom: 8px; cursor: pointer; border: 1px solid var(--border); }
+    .search-result-row:hover { border-color: var(--accent); }
     .empty-state { text-align: center; padding: 40px 20px; }
     .empty-state .emoji { font-size: 40px; margin-bottom: 12px; }
     .empty-state h3 { font-size: 16px; font-weight: 500; margin-bottom: 6px; }
     .empty-state p { font-size: 13px; color: var(--text2); line-height: 1.5; }
-    #loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 400; display: flex; align-items: center; justify-content: center; }
   </style>
 </head>
 <body>
@@ -104,12 +106,13 @@
   <div class="scroll-content">
     <div class="scan-hero">
       <h2>Find a product</h2>
-      <p>Enter the barcode number from any skincare product</p>
+      <p>Search by name — e.g. "Nivea cream" or "Bioderma"</p>
       <div class="search-row">
-        <input class="search-input" type="number" id="home-barcode" placeholder="e.g. 5010123842657" />
+        <input class="search-input" type="text" id="home-search" placeholder="Product name..." />
         <button class="search-btn" onclick="homeSearch()">Search</button>
       </div>
     </div>
+    <div id="search-results" class="search-results"></div>
     <div id="conflict-summary"></div>
     <div class="section-label">My products</div>
     <div class="card" id="products-list">
@@ -197,42 +200,40 @@ function showScreen(name){
   const nb=document.getElementById('nav-'+name);if(nb)nb.classList.add('active');
   if(name==='routine')renderRoutine();
 }
-function homeSearch(){
-  const v=document.getElementById('home-barcode').value.trim();
+async function homeSearch(){
+  const v=document.getElementById('home-search').value.trim();
   if(!v)return;
-  lookupBarcode(v);
-}
-function renderHome(){
-  if(userProfile)document.getElementById('home-greeting').textContent=`${userProfile.skinType} skin · ${userProfile.concern} focus`;
-  const list=document.getElementById('products-list');
-  if(products.length===0){list.innerHTML=`<div class="empty-state"><div class="emoji">🧴</div><h3>No products yet</h3><p>Search your first product to get started</p></div>`;}
-  else{list.innerHTML=products.map((p,i)=>`<div class="product-row" onclick="showResult(${i})"><div class="product-icon">${p.emoji||'🧴'}</div><div class="product-info"><div class="product-name">${p.name}</div><div class="product-brand">${p.brand||'Unknown brand'}</div></div><span class="badge badge-ok">Added</span></div>`).join('');}
-  renderConflicts();
-}
-function renderConflicts(){
-  const summary=document.getElementById('conflict-summary');
-  if(products.length<2){summary.innerHTML='';return;}
-  const all=products.flatMap(p=>p.keyIngredients||[]).map(i=>i.toLowerCase());
-  const found=CONFLICTS.filter(c=>all.some(i=>i.includes(c.a))&&all.some(i=>i.includes(c.b)));
-  if(found.length===0)summary.innerHTML=`<div class="conflict-alert ok" style="margin-bottom:12px"><div class="conflict-icon">✅</div><div><div class="conflict-title">Your products are compatible</div><div class="conflict-desc">No major conflicts found.</div></div></div>`;
-  else summary.innerHTML=found.map(c=>`<div class="conflict-alert ${c.level}" style="margin-bottom:10px"><div class="conflict-icon">${c.level==='danger'?'🚫':'⚠️'}</div><div><div class="conflict-title">${c.msg.split('.')[0]}</div><div class="conflict-desc">${c.msg}</div></div></div>`).join('');
-}
-async function lookupBarcode(barcode){
-  const el=document.createElement('div');el.id='loading-overlay';
-  el.innerHTML=`<div style="background:#fff;border-radius:16px;padding:24px 32px;text-align:center"><div style="font-size:28px;margin-bottom:8px">🔍</div><div style="font-size:14px;font-weight:500">Looking up product…</div></div>`;
-  document.body.appendChild(el);
+  const resultsDiv=document.getElementById('search-results');
+  resultsDiv.innerHTML=`<div style="text-align:center;padding:20px;color:var(--text2)">🔍 Searching...</div>`;
   try{
-    const res=await fetch(`https://world.openbeautyfacts.org/api/v2/product/${barcode}.json`);
+    const res=await fetch(`https://world.openbeautyfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(v)}&search_simple=1&action=process&json=1&page_size=5&fields=product_name,brands,ingredients_text,ingredients_text_en,code`);
     const data=await res.json();
-    document.getElementById('loading-overlay').remove();
-    if(data.status===1){
-      const p=data.product;
-      showResultModal({barcode,name:p.product_name_en||p.product_name||'Unknown product',brand:p.brands||'',emoji:PRODUCT_EMOJIS[Math.floor(Math.random()*PRODUCT_EMOJIS.length)],ingredients:p.ingredients_text_en||p.ingredients_text||'',keyIngredients:extractKeyIngredients(p.ingredients_text_en||p.ingredients_text||''),categories:p.categories||''});
-    }else{showNotFound(barcode);}
+    if(data.products&&data.products.length>0){
+      resultsDiv.innerHTML=data.products.filter(p=>p.product_name).map(p=>`
+        <div class="search-result-row" onclick='selectProduct(${JSON.stringify({
+          barcode:p.code||'',
+          name:p.product_name||'Unknown',
+          brand:p.brands||'',
+          emoji:PRODUCT_EMOJIS[Math.floor(Math.random()*PRODUCT_EMOJIS.length)],
+          ingredients:p.ingredients_text_en||p.ingredients_text||'',
+          keyIngredients:extractKeyIngredients(p.ingredients_text_en||p.ingredients_text||'')
+        }).replace(/'/g,"&#39;")})'>
+          <div class="product-icon">🧴</div>
+          <div class="product-info">
+            <div class="product-name">${p.product_name}</div>
+            <div class="product-brand">${p.brands||''}</div>
+          </div>
+        </div>`).join('');
+    }else{
+      resultsDiv.innerHTML=`<div style="text-align:center;padding:20px;color:var(--text2)">No products found. Try a different name.</div>`;
+    }
   }catch(e){
-    const ov=document.getElementById('loading-overlay');if(ov)ov.remove();
-    showNotFound(barcode);
+    resultsDiv.innerHTML=`<div style="text-align:center;padding:20px;color:var(--danger)">Error searching. Please try again.</div>`;
   }
+}
+function selectProduct(product){
+  document.getElementById('search-results').innerHTML='';
+  showResultModal(product);
 }
 function extractKeyIngredients(text){
   if(!text)return[];
@@ -249,18 +250,29 @@ function showResultModal(product){
   let ch='';
   if(conflicts.length>0)ch=`<div style="margin-bottom:16px"><div class="section-label">Conflicts with your products</div>${conflicts.map(c=>`<div class="conflict-alert ${c.level}"><div class="conflict-icon">${c.level==='danger'?'🚫':'⚠️'}</div><div><div class="conflict-title">${c.msg.split('.')[0]}</div><div class="conflict-desc">${c.msg}</div></div></div>`).join('')}</div>`;
   else if(products.length>0)ch=`<div class="conflict-alert ok" style="margin-bottom:16px"><div class="conflict-icon">✅</div><div><div class="conflict-title">Compatible with your routine</div><div class="conflict-desc">No conflicts found.</div></div></div>`;
-  const kh=product.keyIngredients.length>0?`<div style="margin-bottom:16px"><div class="section-label">Key ingredients</div><div>${product.keyIngredients.map(i=>`<span class="ingredient-chip key">${INGREDIENT_EMOJIS[i]||'•'} ${i}</span>`).join('')}</div></div>`:'';
-  content.innerHTML=`<div class="result-product-header"><div class="result-icon">${product.emoji}</div><div><div class="result-name">${product.name}</div><div class="result-brand">${product.brand||'Unknown brand'}</div></div></div>${ch}${kh}${product.ingredients?`<div style="margin-bottom:16px"><div class="section-label">Ingredients</div><p style="font-size:12px;color:var(--text2);line-height:1.6">${product.ingredients.substring(0,300)}${product.ingredients.length>300?'…':''}</p></div>`:''}<button class="add-btn" onclick='addProduct(${JSON.stringify(product).replace(/'/g,"&#39;")})'>Add to my routine</button><button onclick="closeResult()" style="width:100%;background:none;border:none;padding:12px;font-size:14px;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:4px">Dismiss</button>`;
-  document.getElementById('result-modal').classList.add('open');
-}
-function showNotFound(barcode){
-  document.getElementById('result-content').innerHTML=`<div style="text-align:center;padding:20px 0"><div style="font-size:40px;margin-bottom:12px">🔍</div><div style="font-size:17px;font-weight:600;margin-bottom:8px">Product not found</div><p style="font-size:13px;color:var(--text2);margin-bottom:20px">Barcode ${barcode} isn't in our database yet.</p><button onclick="closeResult()" style="background:var(--accent);color:#fff;border:none;border-radius:50px;padding:14px 32px;font-size:15px;font-family:'DM Sans',sans-serif;cursor:pointer">Close</button></div>`;
+  const kh=product.keyIngredients&&product.keyIngredients.length>0?`<div style="margin-bottom:16px"><div class="section-label">Key ingredients</div><div>${product.keyIngredients.map(i=>`<span class="ingredient-chip key">${INGREDIENT_EMOJIS[i]||'•'} ${i}</span>`).join('')}</div></div>`:'';
+  content.innerHTML=`<div class="result-product-header"><div class="result-icon">${product.emoji||'🧴'}</div><div><div class="result-name">${product.name}</div><div class="result-brand">${product.brand||'Unknown brand'}</div></div></div>${ch}${kh}${product.ingredients?`<div style="margin-bottom:16px"><div class="section-label">Ingredients</div><p style="font-size:12px;color:var(--text2);line-height:1.6">${product.ingredients.substring(0,300)}${product.ingredients.length>300?'…':''}</p></div>`:''}<button class="add-btn" onclick='addProduct(${JSON.stringify(product).replace(/'/g,"&#39;")})'>Add to my routine</button><button onclick="closeResult()" style="width:100%;background:none;border:none;padding:12px;font-size:14px;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:4px">Dismiss</button>`;
   document.getElementById('result-modal').classList.add('open');
 }
 function addProduct(product){
   if(typeof product==='string')product=JSON.parse(product);
   if(!products.find(p=>p.barcode===product.barcode)){products.push(product);localStorage.setItem('myskin_products',JSON.stringify(products));}
   closeResult();renderHome();
+}
+function renderHome(){
+  if(userProfile)document.getElementById('home-greeting').textContent=`${userProfile.skinType} skin · ${userProfile.concern} focus`;
+  const list=document.getElementById('products-list');
+  if(products.length===0)list.innerHTML=`<div class="empty-state"><div class="emoji">🧴</div><h3>No products yet</h3><p>Search your first product to get started</p></div>`;
+  else list.innerHTML=products.map((p,i)=>`<div class="product-row" onclick="showResult(${i})"><div class="product-icon">${p.emoji||'🧴'}</div><div class="product-info"><div class="product-name">${p.name}</div><div class="product-brand">${p.brand||''}</div></div><span class="badge badge-ok">Added</span></div>`).join('');
+  renderConflicts();
+}
+function renderConflicts(){
+  const summary=document.getElementById('conflict-summary');
+  if(products.length<2){summary.innerHTML='';return;}
+  const all=products.flatMap(p=>p.keyIngredients||[]).map(i=>i.toLowerCase());
+  const found=CONFLICTS.filter(c=>all.some(i=>i.includes(c.a))&&all.some(i=>i.includes(c.b)));
+  if(found.length===0)summary.innerHTML=`<div class="conflict-alert ok" style="margin-bottom:12px"><div class="conflict-icon">✅</div><div><div class="conflict-title">Your products are compatible</div><div class="conflict-desc">No major conflicts found.</div></div></div>`;
+  else summary.innerHTML=found.map(c=>`<div class="conflict-alert ${c.level}" style="margin-bottom:10px"><div class="conflict-icon">${c.level==='danger'?'🚫':'⚠️'}</div><div><div class="conflict-title">${c.msg.split('.')[0]}</div><div class="conflict-desc">${c.msg}</div></div></div>`).join('');
 }
 function closeResult(){document.getElementById('result-modal').classList.remove('open');}
 function showResult(i){showResultModal(products[i]);}
